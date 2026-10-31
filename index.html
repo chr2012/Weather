@@ -173,6 +173,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .td .tdl i{font-style:normal;font-size:11px;margin-right:2px}
 .td .tdl small{display:inline;font-size:12px;margin-left:4px;height:auto}
 .hd{height:36px}.ic{height:36px}.ic svg{width:30px;height:30px}.tp{height:64px}.ar{height:22px}.wb{height:48px}.wn{height:32px}.wv{height:32px}.rn{height:40px}
+.hum{position:absolute;left:16px;top:34px;display:flex;align-items:center;gap:6px;font-size:20px;font-weight:600;line-height:1}
 </style>
 </head>
 <body>
@@ -399,11 +400,10 @@ function tideSvg(nowMs){
   let d='';pts.forEach((p,i)=>d+=(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)+' ');
   const lx=X(pts[pts.length-1][0]).toFixed(1),fx=X(pts[0][0]).toFixed(1),nv=tideH(nowMs);
   return `<svg width="84" height="34" viewBox="0 0 84 34"><defs><linearGradient id="tdg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5cb8ff" stop-opacity=".45"/><stop offset="1" stop-color="#5cb8ff" stop-opacity="0"/></linearGradient></defs><path d="${d}L${lx} 34L${fx} 34Z" fill="url(#tdg)"/><path d="${d}" fill="none" stroke="#5cb8ff" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${nv!=null?`<circle cx="${X(0).toFixed(1)}" cy="${Y(nv).toFixed(1)}" r="4" fill="#fff" stroke="#5cb8ff" stroke-width="2"/>`:''}</svg>`}
-function waveSvg(hm,per){
-  if(hm==null)return '<svg width="84" height="34" viewBox="0 0 84 34"><line x1="2" y1="17" x2="82" y2="17" stroke="#566478" stroke-width="2" stroke-dasharray="3 5" stroke-linecap="round"/></svg>';
-  const A=Math.min(13,2.5+hm*6),lam=12+(per||4)*3.5;
-  const wv=ph=>{let d='';for(let x=0;x<=84;x+=2)d+=(x?'L':'M')+x+' '+(17+A*Math.sin(x/lam*2*Math.PI+ph)).toFixed(1)+' ';return d};
-  return `<svg width="84" height="34" viewBox="0 0 84 34"><path d="${wv(1.6)}" fill="none" stroke="#5cb8ff" stroke-width="2.5" opacity=".4" stroke-linecap="round"/><path d="${wv(0)}" fill="none" stroke="#5cb8ff" stroke-width="3" stroke-linecap="round"/></svg>`}
+function waveSvg(hm){            // swell icon: 1 / 2 / 3 lit lines = low / moderate / big waves
+  const lvl=hm==null?0:hm<0.5?1:hm<1.5?2:3,col=hm!=null&&hm>=2.5?'#f26b4f':hm!=null&&hm>=1.5?'#f6d04d':'#5cb8ff';
+  const ln=(y,on)=>`<path d="M2 ${y}c.6.5 1.2 1 2.5 1C7 ${y+1} 7 ${y-1} 9.5 ${y-1}c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1" fill="none" stroke="${on?col:'#566478'}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" opacity="${on?1:.55}"/>`;
+  return `<svg width="46" height="46" viewBox="0 0 24 24">${ln(6,lvl>=3)}${ln(12,lvl>=2)}${ln(18,lvl>=1)}</svg>`}
 function dial(deg){ // arrow shows where the wind blows toward
   return `<svg class="dial" width="76" height="76" viewBox="0 0 76 76"><circle cx="38" cy="38" r="33" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="2"/>
   <g font-size="9" font-weight="700" fill="#8fa0b6" text-anchor="middle"><text x="38" y="12">N</text><text x="66" y="41">E</text><text x="38" y="70">S</text><text x="10" y="41">W</text></g>
@@ -439,21 +439,25 @@ function render(){
   const t0=Date.UTC(+ds.slice(0,4),+ds.slice(5,7)-1,+ds.slice(8,10))-off*1000;
   const mt=moonTimes(t0,lat,lon),mi=moonIllum(Date.now()),tm=x=>x==null?null:Math.round(x*60);
   const pser=h.pressure_msl.slice(Math.max(0,ci-24),ci+13),pnow=Math.min(24,ci);
+  const pr=h.precipitation_probability;let rk=1,rp=pr[ci+1]??pr[ci]??0;
+  for(let k=1;k<=12;k++){if((pr[ci+k]||0)>=40){rk=k;rp=pr[ci+k];break}}
+  const rlbl=rk===1?'% in 1 hr':`% in ${rk} h`;
+  const dlm=strMin(D.daily.sunset[di])-strMin(D.daily.sunrise[di]),dayLen=`${Math.floor(dlm/60)}h ${p2(dlm%60)}m of daylight`;
   const TU=v=>(P.t==='F'?v*3.28084:v).toFixed(1),nowMs=lm(c.time);
   let tideTile;
   if(TD){const nx=TD.ext.filter(e=>e.ms>nowMs).slice(0,2),rising=nx[0]&&nx[0].type==='H';
     const row=e=>`<div><em style="color:${e.type==='H'?'#5cb8ff':'#ffb347'};font-size:13px;margin-right:2px">${e.type==='H'?'▲':'▼'}</em>${fmtMin(strMin(e.t))}<em>${TU(e.v)} ${WVU}</em></div>`;
-    tideTile=`<div class="tile"><div class="lab">Tides</div><div class="gfx">${tideSvg(nowMs)}</div><div class="sm">${nx.map(row).join('')}</div><div class="tsub">${nx[0]?(rising?'Rising':'Falling')+' · ':''}${TD.src==='NOAA'?esc(TD.name)+(TD.d>=20?' ('+TD.d+' km)':''):'model estimate'}</div></div>`}
+    tideTile=`<div class="tile"><div class="lab">Tides</div><div class="gfx">${tideSvg(nowMs)}</div><div class="sm">${nx.map(row).join('')}</div><div class="tsub">${nx[0]?(rising?'Rising':'Falling')+' · ':''}${TD.src==='NOAA'?esc(TD.name)+(TD.d>=20?' ('+TD.d+' km)':''):'model'}</div></div>`}
   else tideTile=`<div class="tile"><div class="lab">Tides</div><div class="gfx">${waveSvg(null)}</div><div class="val" style="font-size:30px">–</div><div class="tsub">${TDL?'Loading…':'No tide data here'}</div></div>`;
   $('tiles').innerHTML=
    `<button class="tile" id="twind"><div class="lab">Wind</div>${dial(c.wind_direction_10m)}<div class="val">${W(c.wind_speed_10m)}<small>${P.w}</small></div><div class="tsub">Gust ${W(c.wind_gusts_10m)} · ${card(c.wind_direction_10m)}</div></button>`+
-   `<div class="tile"><div class="lab">Humidity &amp; Rain</div><div class="hr"><div>${dropSvg(c.relative_humidity_2m,20,26)}<b>${Math.round(c.relative_humidity_2m)}</b><small>% RH</small></div><div>${barsSvg(h.precipitation_probability.slice(ci,ci+12).map(x=>x||0),66,27)}<b>${Math.round(pp)}</b><small>% rain</small></div></div><div class="tsub">Dew ${T(c.dew_point_2m)}° · ${next24<0.05?'0':next24.toFixed(1)} mm</div></div>`+
+   `<div class="tile"><div class="lab">Rain</div><div class="hum">${dropSvg(c.relative_humidity_2m,20,26)}<b>${Math.round(c.relative_humidity_2m)}%</b></div><div class="gfx">${barsSvg(h.precipitation_probability.slice(ci,ci+12).map(x=>x||0),66,27)}</div><div class="val">${Math.round(rp)}<small>${rlbl}</small></div><div class="tsub">${next24<0.05?'None in 24 h':next24.toFixed(1)+' mm in 24 h'}</div></div>`+
    `<div class="tile"><div class="lab">Pressure</div><div class="gfx">${sparkSvg(pser,pnow)}</div><div class="val">${Math.round(c.pressure_msl)}<small>hPa</small></div><div class="tsub">${tr} ${tt}</div></div>`+
-   `<div class="tile"><div class="lab">Waves</div><div class="gfx">${waveSvg(wh,wp)}</div><div class="val">${wh==null?'–':WV(wh)}<small>${wh==null?'':WVU}</small></div><div class="tsub">${wh==null?'No marine data here':Math.round(wp)+' s · '+card(wd)+(st!=null?' · sea '+T(st)+'°':'')}</div></div>`+
+   `<div class="tile"><div class="lab">Waves</div><div class="gfx">${waveSvg(wh)}</div><div class="val">${wh==null?'–':WV(wh)}<small>${wh==null?'':WVU}</small></div><div class="tsub">${wh==null?'No marine data here':Math.round(wp)+' s · '+card(wd)+(st!=null?' · sea '+T(st)+'°':'')}</div></div>`+
    tideTile+
    `<div class="tile"><div class="lab">Sun &amp; Moon</div><div class="gfx" style="top:8px;right:12px">${moonSvg(mi.phase,lat<0,38)}</div>
      <div class="sm"><div>${sunI}<em>↑</em>${fmtMin(strMin(D.daily.sunrise[di]))}<em>↓</em>${fmtMin(strMin(D.daily.sunset[di]))}</div><div>${moonI}<em>↑</em>${fmtMin(tm(mt.rise))}<em>↓</em>${fmtMin(tm(mt.set))}</div></div>
-     <div class="tsub">${phaseName(mi.phase)} · ${Math.round(mi.frac*100)}%</div></div>`;
+     <div class="tsub" title="${phaseName(mi.phase)} · ${Math.round(mi.frac*100)}% lit">${dayLen}</div></div>`;
   $('twind').onclick=()=>{P.w=WU[(WU.indexOf(P.w)+1)%WU.length];savePrefs();render()};
 
   // forecast panel: hourly, 3-hourly or daily
