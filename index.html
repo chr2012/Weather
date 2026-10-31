@@ -21,8 +21,9 @@
 html,body{height:100%;overscroll-behavior:none;touch-action:manipulation;background:var(--bg);overflow:hidden;color:var(--tx);
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   font-variant-numeric:tabular-nums;user-select:none;-webkit-user-select:none}
-.stage{position:absolute;left:50%;top:50%;width:1024px;height:768px;padding:16px;
-  display:flex;flex-direction:column;gap:12px;transform-origin:center center}
+.stage{position:absolute;left:50%;top:50%;width:1280px;height:768px;padding:16px;
+  display:flex;flex-direction:row;gap:12px;transform-origin:center center}
+.main{width:992px;flex:none;display:flex;flex-direction:column;gap:12px;min-width:0}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 /* ---------- top: now ---------- */
@@ -125,13 +126,36 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .place .chev{opacity:.7;margin-left:2px}
 .fs{border:1.5px solid rgba(255,255,255,.2);border-radius:999px;padding:3px 10px;margin-left:12px;font-size:12px;color:var(--tx);display:none}
 .fs.on{display:inline-block}
+
+/* ---------- favorites ---------- */
+.favs{flex:1;min-width:0;display:flex;flex-direction:column;gap:10px}
+.favh{padding:6px 4px 0}
+.favlist{flex:1;display:flex;flex-direction:column;gap:10px;overflow-y:auto;scrollbar-width:none;border-radius:20px}
+.favlist::-webkit-scrollbar{display:none}
+.fav{position:relative;height:104px;flex:none;border-radius:20px;overflow:hidden;border:1.5px solid var(--line);background:#1a2436;text-align:left;cursor:pointer}
+.fav.act{border-color:var(--blue);box-shadow:0 0 0 1.5px var(--blue)}
+.fmap{position:absolute;inset:0;filter:brightness(.6) saturate(.8)}
+.fmap img{position:absolute;width:256px;height:256px;max-width:none;pointer-events:none}
+.fav::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(11,17,28,.82),rgba(11,17,28,.15));pointer-events:none}
+.fin{position:absolute;inset:0;z-index:2;padding:11px 14px;display:flex;flex-direction:column;justify-content:space-between;pointer-events:none}
+.fname{font-size:17px;font-weight:700;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 4px rgba(0,0,0,.7)}
+.fwx{display:flex;align-items:center;gap:6px}
+.fwx b{font-size:34px;font-weight:600;letter-spacing:-.02em;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.fwx svg{width:38px;height:38px}
+.fstar{position:absolute;top:6px;right:6px;z-index:3;width:42px;height:42px;display:flex;align-items:center;justify-content:center}
+.favempty{border:1.5px dashed rgba(255,255,255,.18);border-radius:20px;padding:20px 16px;color:var(--mut);font-size:15px;line-height:1.45;text-align:left}
+.favcr{font-size:10px;color:#566478;text-align:center}
+.hstar{position:absolute;top:12px;right:14px;z-index:3;width:44px;height:44px;display:flex;align-items:center;justify-content:center}
+.mstar{padding:0 14px;display:flex;align-items:center}
 </style>
 </head>
 <body>
 <div class="stage" id="stage">
+  <div class="main">
   <div class="top">
     <div class="hero" id="hero">
-      <button class="place" id="place" title="Tap to re-locate"></button>
+      <button class="place" id="place" title="Choose location"></button>
+      <button class="hstar" id="hstar" aria-label="Favorite"></button>
       <div class="when" id="when"></div>
       <div class="mid">
         <button class="temp" id="temp"></button>
@@ -149,6 +173,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     </div>
     <div class="foot"><span id="upd"></span><span>Open-Meteo weather + marine<button class="fs" id="fs">⛶ Full screen</button></span></div>
   </div>
+  </div>
+  <aside class="favs">
+    <div class="lab favh">Favorites</div>
+    <div class="favlist" id="favlist"></div>
+    <div class="favcr">Map © OpenStreetMap contributors</div>
+  </aside>
   <div class="mapov" id="mapov">
     <div class="mbar">
       <input id="mapq" type="search" placeholder="Search for a place…" autocomplete="off" autocorrect="off" spellcheck="false">
@@ -158,6 +188,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     <div class="mapbox" id="mapbox"></div>
     <div class="mfoot">
       <div class="sel" id="mapsel"></div>
+      <button class="mb mstar" id="mapstar" aria-label="Favorite"></button>
       <button class="mb" id="mapgps">Use GPS</button>
       <button class="mb" id="mapcancel">Cancel</button>
       <button class="mb pri" id="mapset" disabled>Set location</button>
@@ -180,7 +211,7 @@ let D=null,LOC=null;
 const N=12;
 
 /* ---------- fit 4:3 stage ---------- */
-function fit(){const s=Math.min(innerWidth/1024,innerHeight/768);$('stage').style.transform=`translate(-50%,-50%) scale(${s})`}
+function fit(){const s=Math.min(innerWidth/1280,innerHeight/768);$('stage').style.transform=`translate(-50%,-50%) scale(${s})`}
 addEventListener('resize',fit);fit();
 
 /* ---------- helpers ---------- */
@@ -301,7 +332,7 @@ function render(){
   $('hico').innerHTML=icon(c.weather_code,day);
   $('cond').textContent=WX[c.weather_code]||'';
   $('hsub').innerHTML=`<span>Feels like ${T(c.apparent_temperature)}°</span><span>H ${T(D.daily.temperature_2m_max[di])}°</span><span>L ${T(D.daily.temperature_2m_min[di])}°</span>`;
-  clock();
+  clock();updateStars();renderFavs();
 
   // tiles
   let tr='→',tt='Steady';
@@ -380,6 +411,61 @@ function clock(){
 $('temp').onclick=()=>{P.t=P.t==='C'?'F':'C';savePrefs();render()};
 $('place').onclick=()=>openMap();
 
+/* ---------- favorites ---------- */
+let FAVS=[];try{FAVS=JSON.parse(localStorage.getItem('wx-favs')||'[]')||[]}catch(e){}
+const FW={};
+const saveFavs=()=>{try{localStorage.setItem('wx-favs',JSON.stringify(FAVS))}catch(e){}};
+const near=(a,b)=>Math.abs(a.lat-b.lat)<0.02&&Math.abs(a.lon-b.lon)<0.02;
+const favIdx=l=>l?FAVS.findIndex(f=>near(f,l)):-1;
+const fkey=(a,b)=>a.toFixed(3)+','+b.toFixed(3);
+const starSvg=(on,sz)=>`<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="${on?'#ffc93c':'none'}" stroke="${on?'#ffc93c':'#fff'}" stroke-width="2" stroke-linejoin="round"><polygon points="12,2.5 14.9,8.8 21.8,9.6 16.7,14.3 18.1,21.1 12,17.7 5.9,21.1 7.3,14.3 2.2,9.6 9.1,8.8"/></svg>`;
+function tileBg(lat,lon,w,h,z){           // a piece of the OpenStreetMap, centred on the location
+  const n=256*Math.pow(2,z),m=Math.pow(2,z);
+  const px=(lon+180)/360*n,sn=Math.sin(lat*Math.PI/180),py=(0.5-Math.log((1+sn)/(1-sn))/(4*Math.PI))*n;
+  const tx=Math.floor(px/256),ty=Math.floor(py/256);let o='';
+  for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+    const x=((tx+dx)%m+m)%m,y=ty+dy;if(y<0||y>=m)continue;
+    o+=`<img alt="" draggable="false" onerror="this.style.display='none'" src="https://tile.openstreetmap.org/${z}/${x}/${y}.png" style="left:${((tx+dx)*256-px+w/2).toFixed(1)}px;top:${((ty+dy)*256-py+h/2).toFixed(1)}px">`}
+  return o;
+}
+function renderFavs(){
+  const el=$('favlist');
+  if(!FAVS.length){el.innerHTML='<div class="favempty">No favorites yet.<br>Tap the ☆ by the place name, or in the map picker, to save a location here.</div>';return}
+  el.innerHTML=FAVS.map((f,i)=>{const w=FW[fkey(f.lat,f.lon)],act=LOC&&near(f,LOC);
+    return `<div class="fav${act?' act':''}" data-i="${i}"><div class="fmap">${tileBg(f.lat,f.lon,244,104,10)}</div>
+      <div class="fin"><div class="fname">${esc(f.name)}</div><div class="fwx">${w?`<b>${T(w.t)}°</b>${icon(w.code,w.day)}`:''}</div></div>
+      <button class="fstar" data-star="${i}" aria-label="Remove favorite">${starSvg(true,24)}</button></div>`}).join('');
+}
+function updateStars(){
+  $('hstar').innerHTML=starSvg(favIdx(LOC)>=0,28);
+  $('mapstar').innerHTML=starSvg(PEND&&favIdx(PEND)>=0,24);
+}
+function toggleFav(l,name){
+  if(!l)return;const i=favIdx(l);
+  if(i>=0)FAVS.splice(i,1);
+  else FAVS.push({lat:+l.lat.toFixed(4),lon:+l.lon.toFixed(4),name:name||l.name||`${l.lat.toFixed(2)}°, ${l.lon.toFixed(2)}°`});
+  saveFavs();renderFavs();updateStars();loadFavWx();
+}
+async function loadFavWx(){
+  if(!FAVS.length)return;
+  if(qs.has('demo')){FAVS.forEach((f,k)=>FW[fkey(f.lat,f.lon)]={t:8+k*3,code:[0,2,61,3][k%4],day:1});renderFavs();return}
+  try{
+    const u='https://api.open-meteo.com/v1/forecast?latitude='+FAVS.map(f=>f.lat).join(',')+'&longitude='+FAVS.map(f=>f.lon).join(',')+'&current=temperature_2m,weather_code,is_day&timezone=auto';
+    let j=await getJSON(u,15000);if(!Array.isArray(j))j=[j];
+    j.forEach((r,k)=>{if(r&&r.current&&FAVS[k])FW[fkey(FAVS[k].lat,FAVS[k].lon)]={t:r.current.temperature_2m,code:r.current.weather_code,day:r.current.is_day}});
+    renderFavs();
+  }catch(e){}
+}
+$('favlist').onclick=e=>{
+  const st=e.target.closest('[data-star]');
+  if(st){FAVS.splice(+st.dataset.star,1);saveFavs();renderFavs();updateStars();return}
+  const c=e.target.closest('.fav');if(!c)return;const f=FAVS[+c.dataset.i];if(!f)return;
+  PICK={lat:f.lat,lon:f.lon,name:f.name};try{localStorage.setItem('wx-pick',JSON.stringify(PICK))}catch(err){}
+  D=null;load();
+};
+$('hstar').onclick=()=>toggleFav(LOC);
+$('mapstar').onclick=()=>{if(PEND)toggleFav(PEND,PEND.name)};
+
 /* ---------- map picker ---------- */
 let MAP=null,MK=null,PEND=null,leafletP=null;
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -398,7 +484,7 @@ function selLabel(){
 }
 function setPend(lat,lon,name,pan){
   const me=PEND={lat,lon,name:name||''};
-  selLabel();$('mapset').disabled=false;
+  selLabel();$('mapset').disabled=false;updateStars();
   if(MAP){
     if(!MK)MK=L.circleMarker([lat,lon],{radius:11,color:'#fff',weight:3,fillColor:'#5cb8ff',fillOpacity:1}).addTo(MAP);else MK.setLatLng([lat,lon]);
     if(pan)MAP.setView([lat,lon],Math.max(MAP.getZoom(),9));
@@ -454,7 +540,7 @@ async function load(force){
     $('msg').classList.remove('on');
     const srcTxt={gps:'GPS'+(LOC.acc?' ±'+Math.round(LOC.acc)+' m':''),default:'GPS unavailable — default location',picked:'selected on map',manual:'fixed location'}[LOC.src]||'';
     $('upd').textContent='Updated '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+' · '+srcTxt;
-    render();
+    render();loadFavWx();
   }catch(e){
     if(D){$('upd').textContent='Update failed — showing last data';return}
     show(`Weather unavailable<p>${e&&e.message&&e.message.length<80?e.message:'Check the network connection.'} If location is blocked, open this page with <b>?lat=55.68&amp;lon=12.57&amp;name=Copenhagen</b> added to the address.</p><button id="retry">Try again</button>`);
