@@ -27,7 +27,7 @@ html,body{height:100%;overscroll-behavior:none;touch-action:manipulation;backgro
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 /* ---------- top: now ---------- */
-.top{height:298px;flex:none;display:flex;gap:12px}
+.top{height:282px;flex:none;display:flex;gap:12px}
 .hero{width:430px;border-radius:26px;padding:16px 22px 12px;position:relative;overflow:hidden;
   display:flex;flex-direction:column;transition:background .6s;
   background:#1a2436}
@@ -37,9 +37,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .place svg{flex:none;opacity:.9}
 .when{font-size:15px;opacity:.82;margin-top:2px}
 .hero .mid{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
-.temp{font-size:116px;font-weight:300;line-height:.9;letter-spacing:-.04em;text-align:left}
+.temp{font-size:106px;font-weight:300;line-height:.9;letter-spacing:-.04em;text-align:left}
 .temp sup{font-size:48px;font-weight:400;vertical-align:top;position:relative;top:8px;margin-left:2px;letter-spacing:0}
-.hero .ico{width:116px;height:116px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.25))}
+.hero .ico{width:104px;height:104px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.25))}
 .cond{font-size:26px;font-weight:600;margin-top:12px}
 .sub{display:flex;gap:14px;font-size:16px;opacity:.9;margin-top:4px}
 
@@ -150,10 +150,11 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 /* ---------- hero map + tile graphics ---------- */
 .hero>.hmap,.hero>.hsky{position:absolute;inset:0;z-index:0}
-.hmap{filter:saturate(.8) brightness(.95)}
+.hmap{filter:saturate(1.05) contrast(1.03)}
 .hmap img{position:absolute;width:256px;height:256px;max-width:none;pointer-events:none}
-.hsky{opacity:.76}
-.hero{text-shadow:0 1px 8px rgba(0,0,0,.2)}
+.hsky{opacity:.38}
+.hero::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(180deg,rgba(8,22,44,.30),rgba(8,22,44,0) 34%,rgba(8,22,44,0) 52%,rgba(8,22,44,.42))}
+.hero{text-shadow:0 1px 6px rgba(0,0,0,.45)}
 .gfx{position:absolute;right:14px;top:30px;pointer-events:none;line-height:0}
 .tsub{overflow:hidden;text-overflow:ellipsis}
 .sm{margin-top:auto;display:flex;flex-direction:column;gap:3px}
@@ -172,7 +173,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .td .tdl{font-size:14px;line-height:1.2;white-space:nowrap}
 .td .tdl i{font-style:normal;font-size:11px;margin-right:2px}
 .td .tdl small{display:inline;font-size:12px;margin-left:4px;height:auto}
-.hd{height:36px}.ic{height:34px}.ic svg{width:30px;height:30px}.tp{height:76px}.ar{height:22px}.wb{height:52px}.wn{height:30px}.wv{height:30px}.td2{height:64px}.rn{height:40px}
+.hd{height:36px}.ic{height:36px}.ic svg{width:30px;height:30px}.tp{height:82px}.ar{height:22px}.wb{height:52px}.wn{height:32px}.wv{height:30px}.td2{height:70px}.rn{height:40px}
 .hum{position:absolute;left:16px;top:34px;display:flex;align-items:center;gap:6px;font-size:20px;font-weight:600;line-height:1}
 
 .tt{font-size:12.5px;font-weight:600;white-space:nowrap}
@@ -180,8 +181,8 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .hero{padding-bottom:12px}
 .wcap{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8fa0b6;margin-top:2px;line-height:1.1}
 .rn2{margin-top:auto;display:flex;align-items:center;gap:10px;margin-bottom:4px}
-.rn2 b{display:block;font-size:34px;line-height:1;font-weight:600;letter-spacing:-.02em}
-.rn2 span{display:block;font-size:13px;color:var(--mut);line-height:1.25}
+.rn2 b{display:block;font-size:30px;line-height:1;font-weight:600;letter-spacing:-.02em}
+.rn2 span{display:block;font-size:12.5px;color:var(--mut);line-height:1.25}
 .favs .fs{margin:0 auto;padding:7px 16px;font-size:13px}
 .favs .fs.on{display:block}
 .favcr{line-height:1.5}
@@ -328,7 +329,7 @@ async function fetchWx(l){
   '&daily=weather_code,sunrise,sunset,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant'+
   '&wind_speed_unit=kn&timezone=auto&past_days=1&forecast_days=8';
   const mu='https://marine-api.open-meteo.com/v1/marine?latitude='+l.lat+'&longitude='+l.lon+
-  '&hourly=wave_height,wave_period,wave_direction,sea_surface_temperature,sea_level_height_msl&daily=wave_height_max,wave_period_max&timezone=auto&past_days=1&forecast_days=7';
+  '&hourly=wave_height,wave_period,wave_direction,sea_surface_temperature,sea_level_height_msl&daily=wave_height_max,wave_period_max&timezone=auto&past_days=1&forecast_days=8';
   const [w,m]=await Promise.all([getJSON(u,15000),getJSON(mu,15000).catch(()=>null)]);
   w.marine=m&&m.hourly?m.hourly:null;w.marineDaily=m&&m.daily?m.daily:null;   // null = no marine data for this spot (e.g. inland)
   return w;
@@ -398,7 +399,7 @@ const sunI='<svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8
 const moonI='<svg width="16" height="16" viewBox="0 0 16 16"><path d="M10 1.5A6.5 6.5 0 1 0 14.5 11 5.2 5.2 0 0 1 10 1.5z" fill="#dfe6ff"/></svg>';
 function dropSvg(hum,w=34,hg=44){const y=(43-40*Math.max(0,Math.min(100,hum))/100).toFixed(1),d='M17 3C17 3 3 20 3 29a14 14 0 0 0 28 0C31 20 17 3 17 3Z';
   return `<svg width="${w}" height="${hg}" viewBox="0 0 34 44"><defs><clipPath id="dc"><rect x="0" y="${y}" width="34" height="44"/></clipPath></defs><path d="${d}" fill="#5cb8ff" clip-path="url(#dc)" opacity=".9"/><path d="${d}" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="2"/></svg>`}
-function sparkSvg(v,now){const W_=84,H_=34,mn=Math.min(...v),mx=Math.max(...v),sp=Math.max(mx-mn,2),n=v.length;
+function sparkSvg(v,now){const W_=84,H_=26,mn=Math.min(...v),mx=Math.max(...v),sp=Math.max(mx-mn,2),n=v.length;
   const pt=i=>[i/(n-1)*W_,H_-3-(v[i]-mn)/sp*(H_-6)];
   const path=(a,b)=>{let o='';for(let i=a;i<=b;i++){const [x,y]=pt(i);o+=(i===a?'M':'L')+x.toFixed(1)+' '+y.toFixed(1)}return o};
   const [nx,ny]=pt(now);
@@ -412,7 +413,7 @@ function tideSvg(nowMs){
   const X=k=>(k+12)/48*84,Y=v=>30-(v-mn)/sp*26;
   let d='';pts.forEach((p,i)=>d+=(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)+' ');
   const lx=X(pts[pts.length-1][0]).toFixed(1),fx=X(pts[0][0]).toFixed(1),nv=tideH(nowMs);
-  return `<svg width="84" height="28" viewBox="0 0 84 34" preserveAspectRatio="none"><defs><linearGradient id="tdg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5cb8ff" stop-opacity=".45"/><stop offset="1" stop-color="#5cb8ff" stop-opacity="0"/></linearGradient></defs><path d="${d}L${lx} 34L${fx} 34Z" fill="url(#tdg)"/><path d="${d}" fill="none" stroke="#5cb8ff" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${nv!=null?`<circle cx="${X(0).toFixed(1)}" cy="${Y(nv).toFixed(1)}" r="4" fill="#fff" stroke="#5cb8ff" stroke-width="2"/>`:''}</svg>`}
+  return `<svg width="84" height="22" viewBox="0 0 84 34" preserveAspectRatio="none"><defs><linearGradient id="tdg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5cb8ff" stop-opacity=".45"/><stop offset="1" stop-color="#5cb8ff" stop-opacity="0"/></linearGradient></defs><path d="${d}L${lx} 34L${fx} 34Z" fill="url(#tdg)"/><path d="${d}" fill="none" stroke="#5cb8ff" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${nv!=null?`<circle cx="${X(0).toFixed(1)}" cy="${Y(nv).toFixed(1)}" r="4" fill="#fff" stroke="#5cb8ff" stroke-width="2"/>`:''}</svg>`}
 function waveSvg(hm,wdir){            // sea-state pictogram: flatter/rippled -> steep breaking waves with foam and spray
   if(hm==null)return '<svg width="56" height="34" viewBox="0 0 56 34"><line x1="2" y1="20" x2="54" y2="20" stroke="#566478" stroke-width="2" stroke-dasharray="3 5" stroke-linecap="round"/></svg>';
   const names=['Glassy','Rippled','Smooth','Slight','Moderate','Rough','Very rough','High'];
@@ -428,7 +429,7 @@ function waveSvg(hm,wdir){            // sea-state pictogram: flatter/rippled ->
   const comp=wdir==null?'':`<circle cx="28" cy="11" r="10" fill="rgba(255,255,255,.04)" stroke="#566478" stroke-width="1.4"/><line x1="28" y1="1" x2="28" y2="3.5" stroke="#8fa0b6" stroke-width="1.6"/><g transform="rotate(${wdir+180} 28 11)"><polygon points="28,3.5 24,15 28,12.5 32,15" fill="#fff"/></g>`;
   return `<div style="text-align:center"><svg width="56" height="${wdir==null?34:48}" viewBox="0 ${wdir==null?0:-14} 56 ${wdir==null?34:48}"><defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".5"/><stop offset="1" stop-color="${col}" stop-opacity=".05"/></linearGradient></defs><path d="${d}L56 34L0 34Z" fill="url(#wg)"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${foam}${comp?`<g transform="translate(0 -14)">${comp}</g>`:''}</svg><div class="wcap">${names[lvl]}</div></div>`}
 function dial(deg){ // arrow shows where the wind blows toward
-  return `<svg class="dial" width="76" height="76" viewBox="0 0 76 76"><circle cx="38" cy="38" r="33" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="2"/>
+  return `<svg class="dial" width="66" height="66" viewBox="0 0 76 76"><circle cx="38" cy="38" r="33" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="2"/>
   <g font-size="9" font-weight="700" fill="#8fa0b6" text-anchor="middle"><text x="38" y="12">N</text><text x="66" y="41">E</text><text x="38" y="70">S</text><text x="10" y="41">W</text></g>
   <g transform="rotate(${deg+180} 38 38)"><polygon points="38,16 31,44 38,39 45,44" fill="#5cb8ff"/><line x1="38" y1="44" x2="38" y2="58" stroke="#5cb8ff" stroke-width="3" stroke-linecap="round"/></g></svg>`;
 }
@@ -512,7 +513,7 @@ function render(){
   const hiPts=items.map((o,k)=>({x:k+.5,v:o.hi})),loPts=[];
   if(daily)for(let k=0;k<n;k++){const i0=h.time.indexOf(items[k].t+'T18:00');if(i0<0)continue;let m=Infinity,cnt=0;
     for(let j=0;j<15;j++){const v=h.temperature_2m[i0+j];if(v!=null){cnt++;if(v<m)m=v}}if(cnt>=10&&m<Infinity)loPts.push({x:k+1,v:m})}
-  const allT=hiPts.concat(loPts).map(p=>p.v),tmin=Math.min(...allT),tmax=Math.max(...allT),TH=76,top=daily?24:28,bot=daily?24:10;
+  const allT=hiPts.concat(loPts).map(p=>p.v),tmin=Math.min(...allT),tmax=Math.max(...allT),TH=82,top=daily?24:28,bot=daily?24:10;
   const ty=v=>tmax===tmin?TH/2+8:top+(1-(v-tmin)/(tmax-tmin))*(TH-top-bot);
   let tdots='';
   hiPts.forEach(q=>{const l=q.x/n*100,y=ty(q.v);tdots+=`<span class="dot" style="left:${l}%;top:${y}px"></span><span class="tl" style="left:${l}%;top:${y-9}px">${T(q.v)}°</span>`});
@@ -520,20 +521,22 @@ function render(){
   const chart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${n*100} ${TH}" preserveAspectRatio="none">${mkLine(hiPts,'#ffb347','tg',!daily,TH,ty)}${mkLine(loPts,'#6cc0ff','tg2',false,TH,ty)}</svg>${tdots}</div>`;
 
   // tide curve
-  const TT=64;let tideChart;
+  const TT=70;let tideChart;
   if(!TD)tideChart=`<div class="chart" style="grid-column:2 / span ${n}"><span class="tt" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--mut)">–</span></div>`;
   else{
     let paths='',labels='';const fmtE=e=>`${e.type==='H'?'▲':'▼'}${TU(e.v)} ${fmtMin(strMin(e.t))}`;
     if(daily){
       const hiT=[],loT=[];
       items.forEach((o,k)=>{const day=o.t.slice(0,10),ex=TD.ext.filter(e=>e.t.slice(0,10)===day);
-        const hi=ex.filter(e=>e.type==='H').sort((a,b)=>b.v-a.v)[0],lo=ex.filter(e=>e.type==='L').sort((a,b)=>a.v-b.v)[0];
-        if(hi)hiT.push({x:k+.5,v:hi.v,e:hi});if(lo)loT.push({x:k+.5,v:lo.v,e:lo})});
+        const hi=ex.filter(e=>e.type==='H').sort((a,b)=>b.v-a.v)[0];if(hi)hiT.push({x:k+.5,v:hi.v,e:hi})});
+      const eFirst=TD.ext[0].ms,eLast=TD.ext[TD.ext.length-1].ms;
+      items.forEach((o,k)=>{const w0=lm(o.t.slice(0,10)+'T12:00'),w1=w0+86400000;if(eFirst>w0||eLast<w1)return;
+        const lo=TD.ext.filter(e=>e.type==='L'&&e.ms>=w0&&e.ms<w1).sort((a,b)=>a.v-b.v)[0];if(lo)loT.push({x:k+1,v:lo.v,e:lo})});
       const vs=hiT.concat(loT).map(p=>p.v);
-      if(vs.length){const mn=Math.min(...vs),sp=Math.max(Math.max(...vs)-mn,.3),yf=v=>22+(1-(v-mn)/sp)*20;
+      if(vs.length){const mn=Math.min(...vs),sp=Math.max(Math.max(...vs)-mn,.3),yf=v=>22+(1-(v-mn)/sp)*(TT-44);
         paths=mkLine(hiT,'#5cb8ff','tdh',false,TT,yf)+mkLine(loT,'#ffb347','tdl2',false,TT,yf);
         hiT.forEach(q=>{const l=q.x/n*100,y=yf(q.v);labels+=`<span class="dot" style="left:${l}%;top:${y}px;border-color:#5cb8ff"></span><span class="tl tt" style="left:${l}%;top:${y-8}px;color:#bfe3ff">${fmtE(q.e)}</span>`});
-        loT.forEach(q=>{const l=q.x/n*100,y=yf(q.v);labels+=`<span class="dot" style="left:${l}%;top:${y}px;border-color:#ffb347"></span><span class="tl tt" style="left:${l}%;top:${y+8}px;transform:translate(-50%,0);color:#ffd6a0">${fmtE(q.e)}</span>`})}
+        loT.forEach(q=>{const l=q.x/n*100,y=yf(q.v);labels+=`<span class="dot" style="left:${l}%;top:${y}px;border-color:#ffb347"></span><span class="tl tt" style="left:${l}%;top:${y+8}px;transform:translate(${q.x>=n?'-92%':'-50%'},0);color:#ffd6a0">${fmtE(q.e)}</span>`})}
     }else{
       const ms0=lm(items[0].t),sm=P.step*3600000,curve=[];
       for(let u=0;u<=n;u+=.25){const v=tideH(ms0+(u-.5)*sm);if(v!=null)curve.push({x:u,v})}
