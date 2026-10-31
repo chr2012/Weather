@@ -27,8 +27,8 @@ html,body{height:100%;overscroll-behavior:none;touch-action:manipulation;backgro
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 /* ---------- top: now ---------- */
-.top{height:318px;flex:none;display:flex;gap:12px}
-.hero{width:430px;border-radius:26px;padding:20px 24px;position:relative;overflow:hidden;
+.top{height:298px;flex:none;display:flex;gap:12px}
+.hero{width:430px;border-radius:26px;padding:16px 22px 12px;position:relative;overflow:hidden;
   display:flex;flex-direction:column;transition:background .6s;
   background:#1a2436}
 .hero::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 85% 8%,rgba(255,255,255,.22),transparent 55%);pointer-events:none}
@@ -37,9 +37,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .place svg{flex:none;opacity:.9}
 .when{font-size:15px;opacity:.82;margin-top:2px}
 .hero .mid{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
-.temp{font-size:128px;font-weight:300;line-height:.9;letter-spacing:-.04em;text-align:left}
+.temp{font-size:116px;font-weight:300;line-height:.9;letter-spacing:-.04em;text-align:left}
 .temp sup{font-size:48px;font-weight:400;vertical-align:top;position:relative;top:8px;margin-left:2px;letter-spacing:0}
-.hero .ico{width:128px;height:128px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.25))}
+.hero .ico{width:116px;height:116px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.25))}
 .cond{font-size:26px;font-weight:600;margin-top:12px}
 .sub{display:flex;gap:14px;font-size:16px;opacity:.9;margin-top:4px}
 
@@ -154,7 +154,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .hmap img{position:absolute;width:256px;height:256px;max-width:none;pointer-events:none}
 .hsky{opacity:.76}
 .hero{text-shadow:0 1px 8px rgba(0,0,0,.2)}
-.gfx{position:absolute;right:14px;top:34px;pointer-events:none;line-height:0}
+.gfx{position:absolute;right:14px;top:30px;pointer-events:none;line-height:0}
 .tsub{overflow:hidden;text-overflow:ellipsis}
 .sm{margin-top:auto;display:flex;flex-direction:column;gap:3px}
 .sm div{display:flex;align-items:center;gap:7px;font-size:17px;font-weight:600;white-space:nowrap}
@@ -172,12 +172,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .td .tdl{font-size:14px;line-height:1.2;white-space:nowrap}
 .td .tdl i{font-style:normal;font-size:11px;margin-right:2px}
 .td .tdl small{display:inline;font-size:12px;margin-left:4px;height:auto}
-.hd{height:36px}.ic{height:34px}.ic svg{width:30px;height:30px}.tp{height:68px}.ar{height:22px}.wb{height:48px}.wn{height:30px}.wv{height:30px}.td2{height:56px}.rn{height:40px}
+.hd{height:36px}.ic{height:34px}.ic svg{width:30px;height:30px}.tp{height:76px}.ar{height:22px}.wb{height:52px}.wn{height:30px}.wv{height:30px}.td2{height:64px}.rn{height:40px}
 .hum{position:absolute;left:16px;top:34px;display:flex;align-items:center;gap:6px;font-size:20px;font-weight:600;line-height:1}
 
 .tt{font-size:12.5px;font-weight:600;white-space:nowrap}
-.upd{font-size:12px;opacity:.8;margin-top:6px}
-.hero{padding-bottom:14px}
+.sub .upd{margin-left:auto;margin-top:0;font-size:13px;opacity:.85}
+.hero{padding-bottom:12px}
 .wcap{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8fa0b6;margin-top:2px;line-height:1.1}
 .rn2{margin-top:auto;display:flex;align-items:center;gap:10px;margin-bottom:4px}
 .rn2 b{display:block;font-size:34px;line-height:1;font-weight:600;letter-spacing:-.02em}
@@ -202,7 +202,6 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
       </div>
       <div class="cond" id="cond"></div>
       <div class="sub" id="hsub"></div>
-      <div class="upd" id="upd"></div>
     </div>
     <div class="tiles" id="tiles"></div>
   </div>
@@ -327,7 +326,7 @@ async function fetchWx(l){
   '&current=temperature_2m,apparent_temperature,relative_humidity_2m,dew_point_2m,is_day,precipitation,weather_code,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m'+
   '&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,is_day'+
   '&daily=weather_code,sunrise,sunset,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant'+
-  '&wind_speed_unit=kn&timezone=auto&past_days=1&forecast_days=7';
+  '&wind_speed_unit=kn&timezone=auto&past_days=1&forecast_days=8';
   const mu='https://marine-api.open-meteo.com/v1/marine?latitude='+l.lat+'&longitude='+l.lon+
   '&hourly=wave_height,wave_period,wave_direction,sea_surface_temperature,sea_level_height_msl&daily=wave_height_max,wave_period_max&timezone=auto&past_days=1&forecast_days=7';
   const [w,m]=await Promise.all([getJSON(u,15000),getJSON(mu,15000).catch(()=>null)]);
@@ -413,8 +412,8 @@ function tideSvg(nowMs){
   const X=k=>(k+12)/48*84,Y=v=>30-(v-mn)/sp*26;
   let d='';pts.forEach((p,i)=>d+=(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)+' ');
   const lx=X(pts[pts.length-1][0]).toFixed(1),fx=X(pts[0][0]).toFixed(1),nv=tideH(nowMs);
-  return `<svg width="84" height="34" viewBox="0 0 84 34"><defs><linearGradient id="tdg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5cb8ff" stop-opacity=".45"/><stop offset="1" stop-color="#5cb8ff" stop-opacity="0"/></linearGradient></defs><path d="${d}L${lx} 34L${fx} 34Z" fill="url(#tdg)"/><path d="${d}" fill="none" stroke="#5cb8ff" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${nv!=null?`<circle cx="${X(0).toFixed(1)}" cy="${Y(nv).toFixed(1)}" r="4" fill="#fff" stroke="#5cb8ff" stroke-width="2"/>`:''}</svg>`}
-function waveSvg(hm){            // sea-state pictogram: flatter/rippled -> steep breaking waves with foam and spray
+  return `<svg width="84" height="28" viewBox="0 0 84 34" preserveAspectRatio="none"><defs><linearGradient id="tdg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5cb8ff" stop-opacity=".45"/><stop offset="1" stop-color="#5cb8ff" stop-opacity="0"/></linearGradient></defs><path d="${d}L${lx} 34L${fx} 34Z" fill="url(#tdg)"/><path d="${d}" fill="none" stroke="#5cb8ff" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${nv!=null?`<circle cx="${X(0).toFixed(1)}" cy="${Y(nv).toFixed(1)}" r="4" fill="#fff" stroke="#5cb8ff" stroke-width="2"/>`:''}</svg>`}
+function waveSvg(hm,wdir){            // sea-state pictogram: flatter/rippled -> steep breaking waves with foam and spray
   if(hm==null)return '<svg width="56" height="34" viewBox="0 0 56 34"><line x1="2" y1="20" x2="54" y2="20" stroke="#566478" stroke-width="2" stroke-dasharray="3 5" stroke-linecap="round"/></svg>';
   const names=['Glassy','Rippled','Smooth','Slight','Moderate','Rough','Very rough','High'];
   const lvl=hm<0.01?0:hm<0.1?1:hm<0.5?2:hm<1.25?3:hm<2.5?4:hm<4?5:hm<6?6:7;
@@ -426,7 +425,8 @@ function waveSvg(hm){            // sea-state pictogram: flatter/rippled -> stee
   if(lvl>=4)for(let k=0;k<4;k++){const x=lam*(0.25+k);if(x>54)continue;const y=Y(x);
     foam+=`<circle cx="${(x-1.5).toFixed(1)}" cy="${(y-1.5).toFixed(1)}" r="1.5" fill="#fff"/><circle cx="${(x+1.8).toFixed(1)}" cy="${(y-.5).toFixed(1)}" r="1.2" fill="#fff"/>`;
     if(lvl>=6)foam+=`<circle cx="${(x+.5).toFixed(1)}" cy="${(y-5).toFixed(1)}" r="1" fill="#fff" opacity=".8"/><circle cx="${(x-3).toFixed(1)}" cy="${(y-4).toFixed(1)}" r=".9" fill="#fff" opacity=".7"/>`}
-  return `<div style="text-align:center"><svg width="56" height="34" viewBox="0 0 56 34"><defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".5"/><stop offset="1" stop-color="${col}" stop-opacity=".05"/></linearGradient></defs><path d="${d}L56 34L0 34Z" fill="url(#wg)"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${foam}</svg><div class="wcap">${names[lvl]}</div></div>`}
+  const comp=wdir==null?'':`<circle cx="28" cy="11" r="10" fill="rgba(255,255,255,.04)" stroke="#566478" stroke-width="1.4"/><line x1="28" y1="1" x2="28" y2="3.5" stroke="#8fa0b6" stroke-width="1.6"/><g transform="rotate(${wdir+180} 28 11)"><polygon points="28,3.5 24,15 28,12.5 32,15" fill="#fff"/></g>`;
+  return `<div style="text-align:center"><svg width="56" height="${wdir==null?34:48}" viewBox="0 ${wdir==null?0:-14} 56 ${wdir==null?34:48}"><defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".5"/><stop offset="1" stop-color="${col}" stop-opacity=".05"/></linearGradient></defs><path d="${d}L56 34L0 34Z" fill="url(#wg)"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${foam}${comp?`<g transform="translate(0 -14)">${comp}</g>`:''}</svg><div class="wcap">${names[lvl]}</div></div>`}
 function dial(deg){ // arrow shows where the wind blows toward
   return `<svg class="dial" width="76" height="76" viewBox="0 0 76 76"><circle cx="38" cy="38" r="33" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="2"/>
   <g font-size="9" font-weight="700" fill="#8fa0b6" text-anchor="middle"><text x="38" y="12">N</text><text x="66" y="41">E</text><text x="38" y="70">S</text><text x="10" y="41">W</text></g>
@@ -434,7 +434,7 @@ function dial(deg){ // arrow shows where the wind blows toward
 }
 const uvLvl=u=>u<3?'Low':u<6?'Moderate':u<8?'High':u<11?'Very high':'Extreme';
 
-let HK='';
+let HK='',UPD='';
 function render(){
   if(!D)return;
   const c=D.current,h=D.hourly,ci=h.time.indexOf(c.time.slice(0,13)+':00');
@@ -446,7 +446,7 @@ function render(){
   $('temp').innerHTML=`${T(c.temperature_2m)}<sup>°${P.t}</sup>`;
   $('hico').innerHTML=icon(c.weather_code,day);
   $('cond').textContent=WX[c.weather_code]||'';
-  $('hsub').innerHTML=`<span>Feels like ${T(c.apparent_temperature)}°</span><span><i style="font-style:normal;color:#ffd23c;font-size:15px;text-shadow:0 0 3px rgba(0,0,0,.35)">▲</i> ${T(D.daily.temperature_2m_max[di])}°</span><span><i style="font-style:normal;color:#1565d8;font-size:15px;text-shadow:0 0 3px rgba(255,255,255,.5)">▼</i> ${T(D.daily.temperature_2m_min[di])}°</span>`;
+  $('hsub').innerHTML=`<span>Feels like ${T(c.apparent_temperature)}°</span><span><i style="font-style:normal;color:#ffd23c;font-size:15px;text-shadow:0 0 3px rgba(0,0,0,.35)">▲</i> ${T(D.daily.temperature_2m_max[di])}°</span><span><i style="font-style:normal;color:#1565d8;font-size:15px;text-shadow:0 0 3px rgba(255,255,255,.5)">▼</i> ${T(D.daily.temperature_2m_min[di])}°</span><span class="upd" id="upd">${UPD}</span>`;
   clock();updateStars();renderFavs();
 
   // tiles
@@ -474,9 +474,9 @@ function render(){
   else tideTile=`<div class="tile"><div class="lab">Tides</div><div class="gfx">${waveSvg(null)}</div><div class="val" style="font-size:30px">–</div><div class="tsub">${TDL?'Loading…':'No tide data here'}</div></div>`;
   $('tiles').innerHTML=
    `<button class="tile" id="twind"><div class="lab">Wind</div>${dial(c.wind_direction_10m)}<div class="val">${W(c.wind_speed_10m)}<small>${P.w}</small></div><div class="tsub">Gust ${W(c.wind_gusts_10m)} · ${card(c.wind_direction_10m)}</div></button>`+
-   `<div class="tile"><div class="lab">Rain</div><div class="rn2">${dropSvg(rp,38,50)}<div><b>${Math.round(rp)}%</b><span>${rk===1?'in 1 hr':'in '+rk+' h'}</span><span>${next24<0.05?'0 mm':next24.toFixed(1)+' mm'} / 24 h</span></div></div><div class="tsub">${Math.round(c.relative_humidity_2m)}% humidity</div></div>`+
+   `<div class="tile"><div class="lab">Rain</div><div class="gfx" style="top:12px">${dropSvg(rp,38,50)}</div><div class="rn2"><div><b>${Math.round(rp)}%</b><span>${rk===1?'in 1 hr':'in '+rk+' h'}</span><span>${next24<0.05?'0 mm':next24.toFixed(1)+' mm'} / 24 h</span></div></div><div class="tsub">${Math.round(c.relative_humidity_2m)}% humidity</div></div>`+
    `<div class="tile"><div class="lab">Pressure</div><div class="gfx">${sparkSvg(pser,pnow)}</div><div class="val">${Math.round(c.pressure_msl)}<small>hPa</small></div><div class="tsub">${tr} ${tt}</div></div>`+
-   `<button class="tile" id="twave"><div class="lab">Waves</div><div class="gfx">${waveSvg(wh)}</div><div class="val">${wh==null?'–':WV(wh)}<small>${wh==null?'':WVU}</small></div><div class="tsub">${wh==null?'No marine data here':Math.round(wp)+' s · '+card(wd)+(st!=null?' · sea '+T(st)+'°':'')}</div></button>`+
+   `<button class="tile" id="twave"><div class="lab">Waves</div><div class="gfx">${waveSvg(wh,wd)}</div><div class="val">${wh==null?'–':WV(wh)}<small>${wh==null?'':WVU}</small></div><div class="tsub">${wh==null?'No marine data here':Math.round(wp)+' s · '+card(wd)+(st!=null?' · sea '+T(st)+'°':'')}</div></button>`+
    tideTile+
    `<div class="tile"><div class="lab">Sun &amp; Moon</div><div class="gfx" style="top:8px;right:12px">${moonSvg(mi.phase,lat<0,38)}</div>
      <div class="sm"><div>${sunI}<em>↑</em>${fmtMin(strMin(D.daily.sunrise[di]))}<em>↓</em>${fmtMin(strMin(D.daily.sunset[di]))}</div><div>${moonI}<em>↑</em>${fmtMin(tm(mt.rise))}<em>↓</em>${fmtMin(tm(mt.set))}</div></div>
@@ -499,7 +499,7 @@ function render(){
   const n=items.length,daily=P.step===0;
   $('grid').style.setProperty('--n',n);
   const gmax=Math.max(25,...items.map(o=>o.wg));
-  const BH=40,sc=BH/gmax;
+  const BH=44,sc=BH/gmax;
   const wc=v=>v<6?'#4fd1c5':v<12?'#7bd56f':v<17?'#f6d04d':v<22?'#f6a23d':v<28?'#f26b4f':'#e0457b';
   const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   // generic smooth line helper: pts = [{x (column units, .5 = centre, 1 = boundary), v}]
@@ -510,9 +510,9 @@ function render(){
 
   // temperature: highs at column centres; in the daily view the overnight lows sit between the days
   const hiPts=items.map((o,k)=>({x:k+.5,v:o.hi})),loPts=[];
-  if(daily)for(let k=0;k<n-1;k++){const i0=h.time.indexOf(items[k].t+'T18:00');if(i0<0)continue;let m=Infinity;
-    for(let j=0;j<15;j++){const v=h.temperature_2m[i0+j];if(v!=null&&v<m)m=v}if(m<Infinity)loPts.push({x:k+1,v:m})}
-  const allT=hiPts.concat(loPts).map(p=>p.v),tmin=Math.min(...allT),tmax=Math.max(...allT),TH=68,top=daily?22:26,bot=daily?22:10;
+  if(daily)for(let k=0;k<n;k++){const i0=h.time.indexOf(items[k].t+'T18:00');if(i0<0)continue;let m=Infinity,cnt=0;
+    for(let j=0;j<15;j++){const v=h.temperature_2m[i0+j];if(v!=null){cnt++;if(v<m)m=v}}if(cnt>=10&&m<Infinity)loPts.push({x:k+1,v:m})}
+  const allT=hiPts.concat(loPts).map(p=>p.v),tmin=Math.min(...allT),tmax=Math.max(...allT),TH=76,top=daily?24:28,bot=daily?24:10;
   const ty=v=>tmax===tmin?TH/2+8:top+(1-(v-tmin)/(tmax-tmin))*(TH-top-bot);
   let tdots='';
   hiPts.forEach(q=>{const l=q.x/n*100,y=ty(q.v);tdots+=`<span class="dot" style="left:${l}%;top:${y}px"></span><span class="tl" style="left:${l}%;top:${y-9}px">${T(q.v)}°</span>`});
@@ -520,7 +520,7 @@ function render(){
   const chart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${n*100} ${TH}" preserveAspectRatio="none">${mkLine(hiPts,'#ffb347','tg',!daily,TH,ty)}${mkLine(loPts,'#6cc0ff','tg2',false,TH,ty)}</svg>${tdots}</div>`;
 
   // tide curve
-  const TT=56;let tideChart;
+  const TT=64;let tideChart;
   if(!TD)tideChart=`<div class="chart" style="grid-column:2 / span ${n}"><span class="tt" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--mut)">–</span></div>`;
   else{
     let paths='',labels='';const fmtE=e=>`${e.type==='H'?'▲':'▼'}${TU(e.v)} ${fmtMin(strMin(e.t))}`;
@@ -530,7 +530,7 @@ function render(){
         const hi=ex.filter(e=>e.type==='H').sort((a,b)=>b.v-a.v)[0],lo=ex.filter(e=>e.type==='L').sort((a,b)=>a.v-b.v)[0];
         if(hi)hiT.push({x:k+.5,v:hi.v,e:hi});if(lo)loT.push({x:k+.5,v:lo.v,e:lo})});
       const vs=hiT.concat(loT).map(p=>p.v);
-      if(vs.length){const mn=Math.min(...vs),sp=Math.max(Math.max(...vs)-mn,.3),yf=v=>22+(1-(v-mn)/sp)*12;
+      if(vs.length){const mn=Math.min(...vs),sp=Math.max(Math.max(...vs)-mn,.3),yf=v=>22+(1-(v-mn)/sp)*20;
         paths=mkLine(hiT,'#5cb8ff','tdh',false,TT,yf)+mkLine(loT,'#ffb347','tdl2',false,TT,yf);
         hiT.forEach(q=>{const l=q.x/n*100,y=yf(q.v);labels+=`<span class="dot" style="left:${l}%;top:${y}px;border-color:#5cb8ff"></span><span class="tl tt" style="left:${l}%;top:${y-8}px;color:#bfe3ff">${fmtE(q.e)}</span>`});
         loT.forEach(q=>{const l=q.x/n*100,y=yf(q.v);labels+=`<span class="dot" style="left:${l}%;top:${y}px;border-color:#ffb347"></span><span class="tl tt" style="left:${l}%;top:${y+8}px;transform:translate(-50%,0);color:#ffd6a0">${fmtE(q.e)}</span>`})}
@@ -560,8 +560,8 @@ function render(){
    row('ar','Wind',cells(o=>`<svg width="20" height="20" viewBox="-10 -10 20 20"><polygon points="0,7 -5.5,-7 0,-3 5.5,-7" fill="#a9bbd0" transform="rotate(${o.dir})"/></svg>`))+
    row('wb',`Wind<br>${P.w}`,cells(o=>`<div class="bar" style="height:${Math.max(4,o.ws*sc)}px;background:${wc(o.ws)}"><i class="gust" style="bottom:calc(100% + ${Math.max(0,(o.wg-o.ws)*sc-3)}px)"></i></div>`))+
    row('wn',daily?'Max / gust':'Spd / gust',cells(o=>`<span>${W(o.ws)}<small>/${W(o.wg)}</small></span>`))+
-   row('wv',`Wave<br>${WVU}`,cells(o=>o.wave==null?'<span style="color:var(--mut)">–</span>':`<span style="color:${o.wave>=2.5?'#f26b4f':o.wave>=1.5?'#f6d04d':'#cfe6fa'}">${WV(o.wave)}</span><small>${Math.round(o.wper)} s</small>`))+
-   row('tp td2','Tide',tideChart)+
+   row('wv','Waves',cells(o=>o.wave==null?'<span style="color:var(--mut)">–</span>':`<span style="color:${o.wave>=2.5?'#f26b4f':o.wave>=1.5?'#f6d04d':'#cfe6fa'}">${WV(o.wave)}</span><small>${Math.round(o.wper)} s</small>`))+
+   row('tp td2','Tides',tideChart)+
    row('rn','Rain',cells(o=>`<div class="rb"><i style="width:${o.pp}%"></i></div><span style="color:${o.pp>=50?'#5cb8ff':o.pp>=20?'#cfe6fa':'#8fa0b6'}">${Math.round(o.pp)}%</span><small>${o.mm>=0.1?o.mm.toFixed(1)+' mm':''}</small>`));
   $('stepb').onclick=()=>{P.step=P.step===1?3:P.step===3?0:1;savePrefs();render()};
 }
@@ -745,8 +745,7 @@ async function load(force){
     LOC=await locate();
     D=await fetchWx(LOC);
     $('msg').classList.remove('on');
-    const srcTxt={gps:'GPS'+(LOC.acc?' ±'+Math.round(LOC.acc)+' m':''),default:'GPS unavailable — default location',picked:'selected on map',manual:'fixed location'}[LOC.src]||'';
-    $('upd').textContent='Updated '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+' · '+srcTxt;
+    UPD='Updated '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
     const tkey=fkey(LOC.lat,LOC.lon);if(tkey!==TDK){TD=null;TDK=tkey}
     render();loadFavWx();loadTide();
   }catch(e){
