@@ -160,6 +160,19 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .sm div{display:flex;align-items:center;gap:7px;font-size:17px;font-weight:600;white-space:nowrap}
 .sm em{font-style:normal;color:var(--mut);font-size:14px;margin-right:-3px}
 .sm svg{flex:none}
+
+.hr{margin-top:auto;display:flex;flex-direction:column;gap:5px}
+.hr div{display:flex;align-items:center;gap:8px}
+.hr b{font-size:30px;font-weight:600;line-height:1;letter-spacing:-.02em}
+.hr small{font-size:14px;color:var(--mut);margin-left:-3px}
+.td{height:32px}
+.dly .td{height:38px}
+.td span{font-size:18px;font-weight:600;line-height:1.05}
+.td small{font-size:11px;color:var(--mut);height:12px;white-space:nowrap}
+.td .tdl{font-size:14px;line-height:1.2;white-space:nowrap}
+.td .tdl i{font-style:normal;font-size:11px;margin-right:2px}
+.td .tdl small{display:inline;font-size:12px;margin-left:4px;height:auto}
+.hd{height:36px}.ic{height:36px}.ic svg{width:30px;height:30px}.tp{height:64px}.ar{height:22px}.wb{height:48px}.wn{height:32px}.wv{height:32px}.rn{height:40px}
 </style>
 </head>
 <body>
@@ -301,7 +314,7 @@ async function fetchWx(l){
   '&daily=weather_code,sunrise,sunset,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant'+
   '&wind_speed_unit=kn&timezone=auto&past_days=1&forecast_days=7';
   const mu='https://marine-api.open-meteo.com/v1/marine?latitude='+l.lat+'&longitude='+l.lon+
-  '&hourly=wave_height,wave_period,wave_direction,sea_surface_temperature&daily=wave_height_max,wave_period_max&timezone=auto&past_days=1&forecast_days=7';
+  '&hourly=wave_height,wave_period,wave_direction,sea_surface_temperature,sea_level_height_msl&daily=wave_height_max,wave_period_max&timezone=auto&past_days=1&forecast_days=7';
   const [w,m]=await Promise.all([getJSON(u,15000),getJSON(mu,15000).catch(()=>null)]);
   w.marine=m&&m.hourly?m.hourly:null;w.marineDaily=m&&m.daily?m.daily:null;   // null = no marine data for this spot (e.g. inland)
   return w;
@@ -318,7 +331,7 @@ function demo(){ // synthetic data for layout checks (?demo)
   return {timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,
     current:{time:cur+':00',temperature_2m:17.6,apparent_temperature:16.2,relative_humidity_2m:62,dew_point_2m:10.1,is_day:1,precipitation:0,weather_code:2,pressure_msl:1013.6,wind_speed_10m:12.4,wind_direction_10m:240,wind_gusts_10m:18.7},
     marineDaily:{time:[0,1,2,3,4,5,6,7,8].map(k=>new Date(Date.UTC(y,now.getMonth(),d-1+k)).toISOString().slice(0,10)),wave_height_max:[.8,1.1,1.6,2.6,3.0,1.8,1.0,.9,1.2],wave_period_max:[5,5,6,8,9,7,5,5,6]},
-    marine:{time:hourly.time,wave_height:hourly.time.map((_,i)=>1.1+.7*Math.sin(i/10)),wave_period:hourly.time.map((_,i)=>5+Math.sin(i/12)*1.5),wave_direction:hourly.time.map((_,i)=>235+i),sea_surface_temperature:hourly.time.map(()=>17.2)},
+    marine:{time:hourly.time,wave_height:hourly.time.map((_,i)=>1.1+.7*Math.sin(i/10)),wave_period:hourly.time.map((_,i)=>5+Math.sin(i/12)*1.5),sea_level_height_msl:hourly.time.map((_,i)=>1.4*Math.sin(2*Math.PI*i/12.42)+.2*Math.sin(i/170)),wave_direction:hourly.time.map((_,i)=>235+i),sea_surface_temperature:hourly.time.map(()=>17.2)},
     hourly,daily:(()=>{const o={time:[],weather_code:[],sunrise:[],sunset:[],temperature_2m_max:[],temperature_2m_min:[],uv_index_max:[],precipitation_sum:[],precipitation_probability_max:[],wind_speed_10m_max:[],wind_gusts_10m_max:[],wind_direction_10m_dominant:[]};
       for(let k=0;k<9;k++){const ds=new Date(Date.UTC(y,now.getMonth(),d-1+k)).toISOString().slice(0,10);o.time.push(ds);o.weather_code.push([2,0,3,61,63,1,0,2,3][k]);o.sunrise.push(ds+'T07:12');o.sunset.push(ds+'T17:48');
         o.temperature_2m_max.push(19+Math.sin(k)*3);o.temperature_2m_min.push(11+Math.sin(k)*2);o.uv_index_max.push(3.5);o.precipitation_sum.push([0,0,.4,6.2,9.1,.8,0,0,.3][k]);o.precipitation_probability_max.push([5,10,35,80,90,40,5,10,30][k]);
@@ -369,15 +382,23 @@ const fmtMin=m=>{if(m==null)return '–';const h=Math.floor(m/60)%24,mm=m%60;ret
 const strMin=t=>+t.slice(11,13)*60+ +t.slice(14,16);
 const sunI='<svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="4" fill="#ffc93c"/></svg>';
 const moonI='<svg width="16" height="16" viewBox="0 0 16 16"><path d="M10 1.5A6.5 6.5 0 1 0 14.5 11 5.2 5.2 0 0 1 10 1.5z" fill="#dfe6ff"/></svg>';
-function dropSvg(hum){const y=(43-40*Math.max(0,Math.min(100,hum))/100).toFixed(1),d='M17 3C17 3 3 20 3 29a14 14 0 0 0 28 0C31 20 17 3 17 3Z';
-  return `<svg width="34" height="44" viewBox="0 0 34 44"><defs><clipPath id="dc"><rect x="0" y="${y}" width="34" height="44"/></clipPath></defs><path d="${d}" fill="#5cb8ff" clip-path="url(#dc)" opacity=".9"/><path d="${d}" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="2"/></svg>`}
+function dropSvg(hum,w=34,hg=44){const y=(43-40*Math.max(0,Math.min(100,hum))/100).toFixed(1),d='M17 3C17 3 3 20 3 29a14 14 0 0 0 28 0C31 20 17 3 17 3Z';
+  return `<svg width="${w}" height="${hg}" viewBox="0 0 34 44"><defs><clipPath id="dc"><rect x="0" y="${y}" width="34" height="44"/></clipPath></defs><path d="${d}" fill="#5cb8ff" clip-path="url(#dc)" opacity=".9"/><path d="${d}" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="2"/></svg>`}
 function sparkSvg(v,now){const W_=84,H_=34,mn=Math.min(...v),mx=Math.max(...v),sp=Math.max(mx-mn,2),n=v.length;
   const pt=i=>[i/(n-1)*W_,H_-3-(v[i]-mn)/sp*(H_-6)];
   const path=(a,b)=>{let o='';for(let i=a;i<=b;i++){const [x,y]=pt(i);o+=(i===a?'M':'L')+x.toFixed(1)+' '+y.toFixed(1)}return o};
   const [nx,ny]=pt(now);
   return `<svg width="${W_}" height="${H_}" viewBox="0 0 ${W_} ${H_}"><path d="${path(0,now)}" fill="none" stroke="#a9bbd0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="${path(now,n-1)}" fill="none" stroke="#a9bbd0" stroke-width="2.5" stroke-dasharray="3 4" stroke-linecap="round" opacity=".6"/><circle cx="${nx.toFixed(1)}" cy="${ny.toFixed(1)}" r="4" fill="#fff" stroke="#5cb8ff" stroke-width="2"/></svg>`}
-function barsSvg(arr){let o='';arr.forEach((p,i)=>{const hgt=Math.max(2,p/100*30);o+=`<rect x="${(i*7).toFixed(1)}" y="${(33-hgt).toFixed(1)}" width="5" height="${hgt.toFixed(1)}" rx="2" fill="#5cb8ff" opacity="${(.35+p/160).toFixed(2)}"/>`});
-  return `<svg width="84" height="34" viewBox="0 0 84 34">${o}</svg>`}
+function barsSvg(arr,w=84,hg=34){let o='';arr.forEach((p,i)=>{const hgt=Math.max(2,p/100*30);o+=`<rect x="${(i*7).toFixed(1)}" y="${(33-hgt).toFixed(1)}" width="5" height="${hgt.toFixed(1)}" rx="2" fill="#5cb8ff" opacity="${(.35+p/160).toFixed(2)}"/>`});
+  return `<svg width="${w}" height="${hg}" viewBox="0 0 84 34">${o}</svg>`}
+function tideSvg(nowMs){
+  const pts=[];for(let k=-12;k<=36;k++){const v=tideH(nowMs+k*1800000);if(v!=null)pts.push([k,v])}
+  if(pts.length<6)return '';
+  const vs=pts.map(p=>p[1]),mn=Math.min(...vs),sp=Math.max(Math.max(...vs)-mn,.3);
+  const X=k=>(k+12)/48*84,Y=v=>30-(v-mn)/sp*26;
+  let d='';pts.forEach((p,i)=>d+=(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)+' ');
+  const lx=X(pts[pts.length-1][0]).toFixed(1),fx=X(pts[0][0]).toFixed(1),nv=tideH(nowMs);
+  return `<svg width="84" height="34" viewBox="0 0 84 34"><defs><linearGradient id="tdg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5cb8ff" stop-opacity=".45"/><stop offset="1" stop-color="#5cb8ff" stop-opacity="0"/></linearGradient></defs><path d="${d}L${lx} 34L${fx} 34Z" fill="url(#tdg)"/><path d="${d}" fill="none" stroke="#5cb8ff" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${nv!=null?`<circle cx="${X(0).toFixed(1)}" cy="${Y(nv).toFixed(1)}" r="4" fill="#fff" stroke="#5cb8ff" stroke-width="2"/>`:''}</svg>`}
 function waveSvg(hm,per){
   if(hm==null)return '<svg width="84" height="34" viewBox="0 0 84 34"><line x1="2" y1="17" x2="82" y2="17" stroke="#566478" stroke-width="2" stroke-dasharray="3 5" stroke-linecap="round"/></svg>';
   const A=Math.min(13,2.5+hm*6),lam=12+(per||4)*3.5;
@@ -418,12 +439,18 @@ function render(){
   const t0=Date.UTC(+ds.slice(0,4),+ds.slice(5,7)-1,+ds.slice(8,10))-off*1000;
   const mt=moonTimes(t0,lat,lon),mi=moonIllum(Date.now()),tm=x=>x==null?null:Math.round(x*60);
   const pser=h.pressure_msl.slice(Math.max(0,ci-24),ci+13),pnow=Math.min(24,ci);
+  const TU=v=>(P.t==='F'?v*3.28084:v).toFixed(1),nowMs=lm(c.time);
+  let tideTile;
+  if(TD){const nx=TD.ext.filter(e=>e.ms>nowMs).slice(0,2),rising=nx[0]&&nx[0].type==='H';
+    const row=e=>`<div><em style="color:${e.type==='H'?'#5cb8ff':'#ffb347'};font-size:13px;margin-right:2px">${e.type==='H'?'▲':'▼'}</em>${fmtMin(strMin(e.t))}<em>${TU(e.v)} ${WVU}</em></div>`;
+    tideTile=`<div class="tile"><div class="lab">Tides</div><div class="gfx">${tideSvg(nowMs)}</div><div class="sm">${nx.map(row).join('')}</div><div class="tsub">${nx[0]?(rising?'Rising':'Falling')+' · ':''}${TD.src==='NOAA'?esc(TD.name)+(TD.d>=20?' ('+TD.d+' km)':''):'model estimate'}</div></div>`}
+  else tideTile=`<div class="tile"><div class="lab">Tides</div><div class="gfx">${waveSvg(null)}</div><div class="val" style="font-size:30px">–</div><div class="tsub">${TDL?'Loading…':'No tide data here'}</div></div>`;
   $('tiles').innerHTML=
    `<button class="tile" id="twind"><div class="lab">Wind</div>${dial(c.wind_direction_10m)}<div class="val">${W(c.wind_speed_10m)}<small>${P.w}</small></div><div class="tsub">Gust ${W(c.wind_gusts_10m)} · ${card(c.wind_direction_10m)}</div></button>`+
-   `<div class="tile"><div class="lab">Humidity</div><div class="gfx">${dropSvg(c.relative_humidity_2m)}</div><div class="val">${Math.round(c.relative_humidity_2m)}<small>%</small></div><div class="tsub">Dew point ${T(c.dew_point_2m)}°</div></div>`+
+   `<div class="tile"><div class="lab">Humidity &amp; Rain</div><div class="hr"><div>${dropSvg(c.relative_humidity_2m,20,26)}<b>${Math.round(c.relative_humidity_2m)}</b><small>% RH</small></div><div>${barsSvg(h.precipitation_probability.slice(ci,ci+12).map(x=>x||0),66,27)}<b>${Math.round(pp)}</b><small>% rain</small></div></div><div class="tsub">Dew ${T(c.dew_point_2m)}° · ${next24<0.05?'0':next24.toFixed(1)} mm</div></div>`+
    `<div class="tile"><div class="lab">Pressure</div><div class="gfx">${sparkSvg(pser,pnow)}</div><div class="val">${Math.round(c.pressure_msl)}<small>hPa</small></div><div class="tsub">${tr} ${tt}</div></div>`+
-   `<div class="tile"><div class="lab">Rain</div><div class="gfx">${barsSvg(h.precipitation_probability.slice(ci,ci+12).map(x=>x||0))}</div><div class="val">${Math.round(pp)}<small>% next hr</small></div><div class="tsub">${next24<0.05?'None':next24.toFixed(1)+' mm'} in 24 h</div></div>`+
    `<div class="tile"><div class="lab">Waves</div><div class="gfx">${waveSvg(wh,wp)}</div><div class="val">${wh==null?'–':WV(wh)}<small>${wh==null?'':WVU}</small></div><div class="tsub">${wh==null?'No marine data here':Math.round(wp)+' s · '+card(wd)+(st!=null?' · sea '+T(st)+'°':'')}</div></div>`+
+   tideTile+
    `<div class="tile"><div class="lab">Sun &amp; Moon</div><div class="gfx" style="top:8px;right:12px">${moonSvg(mi.phase,lat<0,38)}</div>
      <div class="sm"><div>${sunI}<em>↑</em>${fmtMin(strMin(D.daily.sunrise[di]))}<em>↓</em>${fmtMin(strMin(D.daily.sunset[di]))}</div><div>${moonI}<em>↑</em>${fmtMin(tm(mt.rise))}<em>↓</em>${fmtMin(tm(mt.set))}</div></div>
      <div class="tsub">${phaseName(mi.phase)} · ${Math.round(mi.frac*100)}%</div></div>`;
@@ -442,12 +469,12 @@ function render(){
         wave:mv('wave_height',i),wper:mv('wave_period',i),pp:h.precipitation_probability[i]||0,mm:h.precipitation[i]||0})}
   }
   const n=items.length,daily=P.step===0;
-  $('grid').style.setProperty('--n',n);
+  $('grid').style.setProperty('--n',n);$('grid').classList.toggle('dly',daily);
   const gmax=Math.max(25,...items.map(o=>o.wg));
-  const BH=44,sc=BH/gmax;
+  const BH=38,sc=BH/gmax;
   const wc=v=>v<6?'#4fd1c5':v<12?'#7bd56f':v<17?'#f6d04d':v<22?'#f6a23d':v<28?'#f26b4f':'#e0457b';
   const all=items.flatMap(o=>daily?[o.hi,o.lo]:[o.hi]);
-  const tmin=Math.min(...all),tmax=Math.max(...all),TH=72,top=daily?24:30,bot=daily?24:12;
+  const tmin=Math.min(...all),tmax=Math.max(...all),TH=64,top=daily?22:26,bot=daily?22:10;
   const ty=v=>tmax===tmin?TH/2+8:top+(1-(v-tmin)/(tmax-tmin))*(TH-top-bot);
 
   $('cols').innerHTML='<span></span>'+items.map(o=>`<i class="${o.k===0?'now':(!daily&&!o.day)?'n':''}"></i>`).join('');
@@ -461,6 +488,17 @@ function render(){
     dots+=`<span class="dot" style="left:${l}%;top:${y}px"></span><span class="tl" style="left:${l}%;top:${y-9}px">${T(o.hi)}°</span>`;
     if(daily){const y2=ty(o.lo);dots+=`<span class="dot" style="left:${l}%;top:${y2}px;border-color:#6cc0ff"></span><span class="tl" style="left:${l}%;top:${y2+9}px;transform:translate(-50%,0);color:#9ccfff">${T(o.lo)}°</span>`}});
   const chart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${n*100} ${TH}" preserveAspectRatio="none">${line('hi','#ffb347','tg')}${daily?line('lo','#6cc0ff','tg2'):''}</svg>${dots}</div>`;
+  const tideCell=o=>{
+    if(!TD)return '<span style="color:var(--mut)">–</span>';
+    if(daily){const day=o.t.slice(0,10),ex=TD.ext.filter(e=>e.t.slice(0,10)===day);if(!ex.length)return '<span style="color:var(--mut)">–</span>';
+      const hi=ex.filter(e=>e.type==='H').sort((a,b)=>b.v-a.v)[0],lo=ex.filter(e=>e.type==='L').sort((a,b)=>a.v-b.v)[0];
+      const ln=(e,ch,col)=>e?`<span class="tdl"><i style="color:${col}">${ch}</i>${TU(e.v)}<small>${fmtMin(strMin(e.t))}</small></span>`:'';
+      return ln(hi,'▲','#5cb8ff')+ln(lo,'▼','#ffb347')}
+    const ms=lm(o.t),v=tideH(ms);if(v==null)return '<span style="color:var(--mut)">–</span>';
+    const ex=TD.ext.find(e=>Math.abs(e.ms-ms)<=P.step*1800000);
+    if(ex)return `<span style="color:${ex.type==='H'?'#5cb8ff':'#ffb347'}">${TU(ex.v)}</span><small>${ex.type==='H'?'High':'Low'} ${fmtMin(strMin(ex.t))}</small>`;
+    const up=(tideH(ms+1800000)??v)>(tideH(ms-1800000)??v);
+    return `<span>${TU(v)}</span><small>${up?'↑ rising':'↓ falling'}</small>`};
   const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
   $('rows').innerHTML=
@@ -474,6 +512,7 @@ function render(){
    row('wb',`Wind<br>${P.w}`,cells(o=>`<div class="bar" style="height:${Math.max(4,o.ws*sc)}px;background:${wc(o.ws)}"><i class="gust" style="bottom:calc(100% + ${Math.max(0,(o.wg-o.ws)*sc-3)}px)"></i></div>`))+
    row('wn',daily?'Max / gust':'Spd / gust',cells(o=>`<span>${W(o.ws)}<small>/${W(o.wg)}</small></span>`))+
    row('wv',`Wave<br>${WVU}`,cells(o=>o.wave==null?'<span style="color:var(--mut)">–</span>':`<span style="color:${o.wave>=2.5?'#f26b4f':o.wave>=1.5?'#f6d04d':'#cfe6fa'}">${WV(o.wave)}</span><small>${Math.round(o.wper)} s</small>`))+
+   row('td',`Tide<br>${WVU}`,cells(tideCell))+
    row('rn','Rain',cells(o=>`<div class="rb"><i style="width:${o.pp}%"></i></div><span style="color:${o.pp>=50?'#5cb8ff':o.pp>=20?'#cfe6fa':'#8fa0b6'}">${Math.round(o.pp)}%</span><small>${o.mm>=0.1?o.mm.toFixed(1)+' mm':''}</small>`));
   $('stepb').onclick=()=>{P.step=P.step===1?3:P.step===3?0:1;savePrefs();render()};
 }
@@ -486,6 +525,49 @@ function clock(){
 }
 $('temp').onclick=()=>{P.t=P.t==='C'?'F':'C';savePrefs();render()};
 $('place').onclick=()=>openMap();
+
+/* ---------- tides: NOAA CO-OPS predictions (US) with Open-Meteo sea-level model as fallback ---------- */
+let TD=null,TDK='',TDL=false;
+const lm=t=>Date.UTC(+t.slice(0,4),+t.slice(5,7)-1,+t.slice(8,10),+t.slice(11,13),+t.slice(14,16));
+const hav=(a,b,c,d)=>{const r=Math.PI/180,x=(c-a)*r,y=(d-b)*r,q=Math.sin(x/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin(y/2)**2;return 12742*Math.asin(Math.sqrt(q))};
+function tideH(ms){                     // height (m) at a local-time ms value: cosine interpolation between high/low
+  if(!TD)return null;const e=TD.ext;
+  if(e.length<2||ms<e[0].ms||ms>e[e.length-1].ms)return null;
+  let i=0;while(i<e.length-2&&e[i+1].ms<=ms)i++;
+  const a=e[i],b=e[i+1],f=(ms-a.ms)/(b.ms-a.ms);return a.v+(b.v-a.v)*(1-Math.cos(Math.PI*f))/2;
+}
+async function noaaTide(loc,w){
+  const key=fkey(loc.lat,loc.lon);let cache={};try{cache=JSON.parse(localStorage.getItem('wx-stn')||'{}')}catch(e){}
+  let st=cache[key];
+  if(!st){
+    const j=await getJSON('https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=tidepredictions',25000);
+    let best=null;for(const x of j.stations||[]){const d=hav(loc.lat,loc.lon,x.lat,x.lng);if(!best||d<best.d)best={d,id:x.id,name:x.name}}
+    st=best&&best.d<=60?{id:best.id,name:best.name,d:Math.round(best.d)}:{none:1};
+    cache[key]=st;try{localStorage.setItem('wx-stn',JSON.stringify(cache))}catch(e){}
+  }
+  if(st.none)return null;
+  const ds=w.current.time.slice(0,10),d0=Date.UTC(+ds.slice(0,4),+ds.slice(5,7)-1,+ds.slice(8,10));
+  const f=o=>new Date(d0+o*86400000).toISOString().slice(0,10).replace(/-/g,'');
+  const j=await getJSON('https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&application=weather_tablet&datum=MLLW&station='+st.id+'&time_zone=lst_ldt&units=metric&interval=hilo&format=json&begin_date='+f(-1)+'&end_date='+f(8),15000);
+  if(!j.predictions||j.predictions.length<2)return null;
+  return{src:'NOAA',name:st.name,d:st.d,ext:j.predictions.map(p=>{const t=p.t.replace(' ','T');return{t,ms:lm(t),v:+p.v,type:p.type}})};
+}
+function modelTide(){                    // highs/lows found in the Open-Meteo sea-level series
+  const m=D.marine&&D.marine.sea_level_height_msl;if(!m||m.every(x=>x==null))return null;
+  const tt=D.marine.time,ext=[];
+  for(let i=1;i<tt.length-1;i++){const a=m[i-1],b=m[i],c=m[i+1];if(a==null||b==null||c==null)continue;
+    const hi=b>a&&b>=c,lo=b<a&&b<=c;if(!hi&&!lo)continue;
+    const den=a-2*b+c,off=den?0.5*(a-c)/den:0,ms=lm(tt[i])+off*3600000;
+    ext.push({t:new Date(ms).toISOString().slice(0,16),ms,v:b-0.25*(a-c)*off,type:hi?'H':'L'})}
+  return ext.length>=2?{src:'model',name:'model estimate',d:0,ext}:null;
+}
+async function loadTide(){
+  const tk=TDK;TDL=true;let td=null;
+  if(!qs.has('demo')){try{td=await noaaTide(LOC,D)}catch(e){}}
+  if(!td&&D)td=modelTide();
+  if(tk!==TDK)return;
+  TD=td;TDL=false;render();
+}
 
 /* ---------- favorites ---------- */
 let FAVS=[];try{FAVS=JSON.parse(localStorage.getItem('wx-favs')||'[]')||[]}catch(e){}
@@ -616,7 +698,8 @@ async function load(force){
     $('msg').classList.remove('on');
     const srcTxt={gps:'GPS'+(LOC.acc?' ±'+Math.round(LOC.acc)+' m':''),default:'GPS unavailable — default location',picked:'selected on map',manual:'fixed location'}[LOC.src]||'';
     $('upd').textContent='Updated '+new Date().toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})+' · '+srcTxt;
-    render();loadFavWx();
+    const tkey=fkey(LOC.lat,LOC.lon);if(tkey!==TDK){TD=null;TDK=tkey}
+    render();loadFavWx();loadTide();
   }catch(e){
     if(D){$('upd').textContent='Update failed — showing last data';return}
     show(`Weather unavailable<p>${e&&e.message&&e.message.length<80?e.message:'Check the network connection.'} If location is blocked, open this page with <b>?lat=55.68&amp;lon=12.57&amp;name=Copenhagen</b> added to the address.</p><button id="retry">Try again</button>`);
