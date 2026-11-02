@@ -206,6 +206,38 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .wg{position:absolute;transform:translate(-50%,-100%);font-size:19px;font-weight:600;color:#cfe6fa;white-space:nowrap;line-height:1}
 .ws{position:absolute;transform:translate(-50%,0);font-size:19px;font-weight:600;white-space:nowrap;line-height:1}
 .step{border:0;border-radius:0;padding:6px 0;color:var(--mut);letter-spacing:.12em;text-align:left}
+
+/* ---------- main card redesign: frosted panels over the map ---------- */
+.hero{padding:14px 16px 14px}
+.hero>.hmap,.hero>.hsky{position:absolute}
+.hsky{opacity:.30}
+.glass{background:rgba(9,20,38,.5);-webkit-backdrop-filter:blur(8px) saturate(1.25);backdrop-filter:blur(8px) saturate(1.25);border:1px solid rgba(255,255,255,.16);border-radius:16px;padding:8px 12px}
+.hhead{align-self:flex-start;max-width:calc(100% - 52px)}
+.place{font-size:19px;line-height:1.15}
+.place span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-align:left}
+.when{font-size:14px;opacity:.9;margin-top:3px;text-align:left}
+.hero .mid{margin:auto 0 8px}
+.temp{font-size:90px;text-shadow:0 2px 16px rgba(0,0,0,.55)}
+.hero .ico{width:90px;height:90px}
+.hfoot{padding:8px 12px}
+.hrow{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.hero .cond{font-size:22px;margin-top:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hpr{font-size:15px;font-weight:600;white-space:nowrap}
+.hpr small{font-size:12px;opacity:.75;font-weight:500}
+.hero .sub{font-size:14px;gap:12px;opacity:1;margin-top:3px}
+.hero .sub .upd{margin-left:auto;font-size:12px;opacity:.8}
+/* ---------- visibility ---------- */
+@keyframes fogblink{0%,100%{opacity:1}50%{opacity:.3}}
+.fogtag{font-size:10px;font-weight:800;letter-spacing:.14em;color:#ff6b8a;animation:fogblink 1.3s ease-in-out infinite;line-height:1}
+.tsub .fogtag{font-size:15px}
+.row.vis{height:36px}
+.row.vis>div{gap:0}
+.vv{font-size:16px;font-weight:700;line-height:1.05}
+.vb{display:block;height:4px;width:62%;border-radius:2px;margin-top:3px}
+.row.vis .fogtag{margin-bottom:1px}
+.tp{height:72px}
+.row.wl{height:136px}
+.td2{height:64px}
 </style>
 </head>
 <body>
@@ -214,15 +246,19 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   <div class="top">
     <div class="hero" id="hero">
       <div class="hmap" id="hmap"></div><div class="hsky" id="hsky"></div>
-      <button class="place" id="place" title="Choose location"></button>
+      <div class="hhead glass">
+        <button class="place" id="place" title="Choose location"></button>
+        <div class="when" id="when"></div>
+      </div>
       <button class="hstar" id="hstar" aria-label="Favorite"></button>
-      <div class="when" id="when"></div>
       <div class="mid">
         <button class="temp" id="temp"></button>
         <div class="ico" id="hico"></div>
       </div>
-      <div class="cond" id="cond"></div>
-      <div class="sub" id="hsub"></div>
+      <div class="hfoot glass">
+        <div class="hrow"><div class="cond" id="cond"></div><div class="hpr" id="hpr"></div></div>
+        <div class="sub" id="hsub"></div>
+      </div>
     </div>
     <div class="tiles" id="tiles"></div>
   </div>
@@ -263,10 +299,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 const $=s=>document.getElementById(s);
 const KN={'kts':1,'km/h':1.852,'mph':1.15078,'m/s':0.514444};
 const WU=Object.keys(KN);
-const P={t:'C',w:'kts',step:1,wv:'m'};
+const P={t:'C',w:'kts',step:1,wv:'m',vu:'km'};
 try{Object.assign(P,JSON.parse(localStorage.getItem('wx-prefs')||'{}'))}catch(e){}
 if(!KN[P.w])P.w='kts';
 if(P.wv!=='ft')P.wv='m';
+if(P.vu!=='nm')P.vu='km';
+if(![0,1,3,6].includes(P.step))P.step=1;
 const savePrefs=()=>{try{localStorage.setItem('wx-prefs',JSON.stringify(P))}catch(e){}};
 const qs=new URLSearchParams(location.search);
 let D=null,LOC=null;
@@ -346,8 +384,8 @@ async function locate(){
 async function fetchWx(l){
   if(qs.has('demo'))return demo();
   const u='https://api.open-meteo.com/v1/forecast?latitude='+l.lat+'&longitude='+l.lon+
-  '&current=temperature_2m,apparent_temperature,relative_humidity_2m,dew_point_2m,is_day,precipitation,weather_code,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m'+
-  '&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,is_day'+
+  '&current=temperature_2m,apparent_temperature,relative_humidity_2m,dew_point_2m,is_day,precipitation,weather_code,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility'+
+  '&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,is_day,visibility'+
   '&daily=weather_code,sunrise,sunset,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant'+
   '&wind_speed_unit=kn&timezone=auto&past_days=1&forecast_days=8';
   const mu='https://marine-api.open-meteo.com/v1/marine?latitude='+l.lat+'&longitude='+l.lon+
@@ -358,15 +396,15 @@ async function fetchWx(l){
 }
 function demo(){ // synthetic data for layout checks (?demo)
   const now=new Date(),y=now.getFullYear(),mo=p2(now.getMonth()+1),d=now.getDate();
-  const hourly={time:[],temperature_2m:[],precipitation_probability:[],precipitation:[],weather_code:[],pressure_msl:[],wind_speed_10m:[],wind_direction_10m:[],wind_gusts_10m:[],is_day:[]};
+  const hourly={time:[],temperature_2m:[],precipitation_probability:[],precipitation:[],weather_code:[],pressure_msl:[],wind_speed_10m:[],wind_direction_10m:[],wind_gusts_10m:[],is_day:[],visibility:[]};
   for(let i=0;i<120;i++){const dt=new Date(Date.UTC(y,now.getMonth(),d-1,i)),h=dt.getUTCHours();
     hourly.time.push(dt.toISOString().slice(0,13)+':00');hourly.temperature_2m.push(14+6*Math.sin((h-9)/24*6.283)+i*.03);
     hourly.precipitation_probability.push(Math.max(0,Math.round(50*Math.sin(i/9))));hourly.precipitation.push(Math.max(0,Math.sin(i/9)*.8));
     hourly.weather_code.push([0,1,2,3,61,0,2][Math.floor(i/7)%7]);hourly.pressure_msl.push(1014-i*.08);
-    const ws=9+7*Math.sin(i/8);hourly.wind_speed_10m.push(ws);hourly.wind_gusts_10m.push(ws*1.35);hourly.wind_direction_10m.push(250+i*3);hourly.is_day.push(h>=7&&h<18?1:0)}
+    const ws=9+7*Math.sin(i/8);hourly.wind_speed_10m.push(ws);hourly.wind_gusts_10m.push(ws*1.35);hourly.wind_direction_10m.push(250+i*3);hourly.is_day.push(h>=7&&h<18?1:0);hourly.visibility.push(h>=4&&h<=8?(h===6?250:900):(i%30<8?3500:24000))}
   const cur=new Date().toISOString().slice(0,13);
   return {timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,
-    current:{time:cur+':00',temperature_2m:17.6,apparent_temperature:16.2,relative_humidity_2m:62,dew_point_2m:10.1,is_day:1,precipitation:0,weather_code:2,pressure_msl:1013.6,wind_speed_10m:12.4,wind_direction_10m:240,wind_gusts_10m:18.7},
+    current:{time:cur+':00',temperature_2m:17.6,apparent_temperature:16.2,relative_humidity_2m:62,dew_point_2m:10.1,is_day:1,precipitation:0,weather_code:2,pressure_msl:1013.6,wind_speed_10m:12.4,wind_direction_10m:240,wind_gusts_10m:18.7,visibility:1800},
     marineDaily:{time:[0,1,2,3,4,5,6,7,8].map(k=>new Date(Date.UTC(y,now.getMonth(),d-1+k)).toISOString().slice(0,10)),wave_height_max:[.8,1.1,1.6,2.6,3.0,1.8,1.0,.9,1.2],wave_period_max:[5,5,6,8,9,7,5,5,6]},
     marine:{time:hourly.time,wave_height:hourly.time.map((_,i)=>1.1+.7*Math.sin(i/10)),wave_period:hourly.time.map((_,i)=>5+Math.sin(i/12)*1.5),sea_level_height_msl:hourly.time.map((_,i)=>1.4*Math.sin(2*Math.PI*i/12.42)+.2*Math.sin(i/170)),wave_direction:hourly.time.map((_,i)=>235+i),sea_surface_temperature:hourly.time.map(()=>17.2)},
     hourly,daily:(()=>{const o={time:[],weather_code:[],sunrise:[],sunset:[],temperature_2m_max:[],temperature_2m_min:[],uv_index_max:[],precipitation_sum:[],precipitation_probability_max:[],wind_speed_10m_max:[],wind_gusts_10m_max:[],wind_direction_10m_dominant:[]};
@@ -419,6 +457,14 @@ const fmtMin=m=>{if(m==null)return '–';const h=Math.floor(m/60)%24,mm=m%60;ret
 const strMin=t=>+t.slice(11,13)*60+ +t.slice(14,16);
 const sunI='<svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="4" fill="#ffc93c"/></svg>';
 const moonI='<svg width="16" height="16" viewBox="0 0 16 16"><path d="M10 1.5A6.5 6.5 0 1 0 14.5 11 5.2 5.2 0 0 1 10 1.5z" fill="#dfe6ff"/></svg>';
+const visCol=k=>k>=5?'#7bd56f':k>=2?'#f6d04d':k>=1?'#f6a23d':'#f26b4f';
+const visWord=k=>k>=5?'Good':k>=2?'Moderate':k>=1?'Poor':'Very poor';
+const visTxt=k=>{if(k==null)return '–';if(k>=24)return P.vu==='nm'?'13+':'24+';const v=P.vu==='nm'?k/1.852:k;return v<10?v.toFixed(1):String(Math.round(v))};
+const isFog=(code,k)=>code===45||code===48||(k!=null&&k<0.5);
+function visScaleSvg(k){            // colour scale bar with a marker at the current visibility
+  const segs=[['#f26b4f',0,20],['#f6a23d',21,20],['#f6d04d',42,26],['#7bd56f',69,15]];
+  const x=k==null?0:k<1?k*20:k<2?21+(k-1)*20:k<5?42+(k-2)/3*26:69+Math.min((k-5)/19,1)*15;
+  return `<svg width="84" height="30" viewBox="0 0 84 30">${segs.map(([c,a,w])=>`<rect x="${a}" y="17" width="${w}" height="8" rx="3" fill="${c}" opacity=".9"/>`).join('')}<polygon points="${(x-5).toFixed(1)},4 ${(x+5).toFixed(1)},4 ${x.toFixed(1)},13" fill="#fff"/></svg>`}
 function dropSvg(hum,w=34,hg=44){const y=(43-40*Math.max(0,Math.min(100,hum))/100).toFixed(1),d='M17 3C17 3 3 20 3 29a14 14 0 0 0 28 0C31 20 17 3 17 3Z';
   return `<svg width="${w}" height="${hg}" viewBox="0 0 34 44"><defs><clipPath id="dc"><rect x="0" y="${y}" width="34" height="44"/></clipPath></defs><path d="${d}" fill="#5cb8ff" clip-path="url(#dc)" opacity=".9"/><path d="${d}" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="2"/></svg>`}
 function sparkSvg(v,now){const W_=84,H_=22,mn=Math.min(...v),mx=Math.max(...v),sp=Math.max(mx-mn,2),n=v.length;
@@ -463,18 +509,20 @@ function render(){
   const c=D.current,h=D.hourly,ci=h.time.indexOf(c.time.slice(0,13)+':00');
   const di=Math.max(0,D.daily.time.indexOf(c.time.slice(0,10)));
   const day=!!c.is_day;
+  let tr='→',tt='Steady',pd=0;
+  if(ci>=3){pd=c.pressure_msl-h.pressure_msl[ci-3];if(pd>1){tr='↗';tt='Rising'}else if(pd<-1){tr='↘';tt='Falling'}if(Math.abs(pd)>3){tr=pd>0?'↑':'↓';tt=pd>0?'Rising fast':'Falling fast'}}
+  const pcol=pd<-3?'#ff8a5c':pd<-1?'#ffc266':pd>1?'#8fe3a8':'#dbe6f3';
   $('hsky').style.background=sky(c.weather_code,day);
   const hk=fkey(LOC.lat,LOC.lon);if(hk!==HK){HK=hk;$('hmap').innerHTML=tileBg(LOC.lat,LOC.lon,430,318,10)}
   $('place').innerHTML=pin+`<span>${LOC.name}</span><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>`;
   $('temp').innerHTML=`${T(c.temperature_2m)}<sup>°${P.t}</sup>`;
   $('hico').innerHTML=icon(c.weather_code,day);
   $('cond').textContent=WX[c.weather_code]||'';
-  $('hsub').innerHTML=`<span>Feels like ${T(c.apparent_temperature)}°</span><span><i style="font-style:normal;color:#ffd23c;font-size:15px;text-shadow:0 0 3px rgba(0,0,0,.35)">▲</i> ${T(D.daily.temperature_2m_max[di])}°</span><span><i style="font-style:normal;color:#1565d8;font-size:15px;text-shadow:0 0 3px rgba(255,255,255,.5)">▼</i> ${T(D.daily.temperature_2m_min[di])}°</span><span class="upd" id="upd">${UPDT?'Updated '+clk(UPDT):''}</span>`;
+  $('hpr').innerHTML=`<span style="color:${pcol}">${Math.round(c.pressure_msl)} hPa ${tr}</span> <small>${tt}</small>`;
+  $('hsub').innerHTML=`<span>Feels ${T(c.apparent_temperature)}°</span><span><i style="font-style:normal;color:#ffd23c;font-size:14px">▲</i> ${T(D.daily.temperature_2m_max[di])}°</span><span><i style="font-style:normal;color:#7cc4ff;font-size:14px">▼</i> ${T(D.daily.temperature_2m_min[di])}°</span><span class="upd" id="upd">${UPDT?'Updated '+clk(UPDT):''}</span>`;
   clock();updateStars();renderFavs();
 
   // tiles
-  let tr='→',tt='Steady';
-  if(ci>=3){const d=c.pressure_msl-h.pressure_msl[ci-3];if(d>1){tr='↗';tt='Rising'}else if(d<-1){tr='↘';tt='Falling'}if(Math.abs(d)>3){tr=d>0?'↑':'↓';tt=d>0?'Rising fast':'Falling fast'}}
   const next24=h.precipitation.slice(ci,ci+24).reduce((a,b)=>a+(b||0),0);
   const pp=h.precipitation_probability[ci+1]??h.precipitation_probability[ci]??0;
   const mIdx=D.marine?Object.fromEntries(D.marine.time.map((t,j)=>[t,j])):null;
@@ -495,28 +543,33 @@ function render(){
     const row=e=>`<div><em style="color:${e.type==='H'?'#5cb8ff':'#ffb347'};font-size:13px;margin-right:2px">${e.type==='H'?'▲':'▼'}</em>${fmtMin(strMin(e.t))}<em>${TU(e.v)} ${WVU}</em></div>`;
     tideTile=`<div class="tile"><div class="lab">Tides <span class="u">(${tstate})</span></div><div class="gfx al">${tideSvg(nowMs)}</div><div class="sm" style="margin-bottom:2px">${nx.map(row).join('')}</div></div>`}
   else tideTile=`<div class="tile"><div class="lab">Tides</div><div class="gfx">${waveSvg(null)}</div><div class="val" style="font-size:30px">–</div><div class="tsub">${TDL?'Loading…':'No tide data here'}</div></div>`;
+  const vk=c.visibility==null?null:c.visibility/1000,spread=c.temperature_2m-c.dew_point_2m;
+  const fogNow=isFog(c.weather_code,vk),fogRisk=!fogNow&&spread<=1.5&&c.wind_speed_10m<=8&&(vk==null||vk>=1);
   $('tiles').innerHTML=
    `<button class="tile" id="twind"><div class="lab">Wind <span class="u">(${P.w})</span></div>${dial(c.wind_direction_10m)}<div class="val">${W(c.wind_speed_10m)}</div><div class="tsub">Gust ${W(c.wind_gusts_10m)} · ${card(c.wind_direction_10m)}</div></button>`+
    `<div class="tile"><div class="lab">Rain <span class="u">(mm)</span></div><div class="gfx" style="top:12px">${dropSvg(rp1,30,40)}</div><div class="val">${next24<0.05?'0':next24.toFixed(1)}<small>/ 24hr</small></div><div class="tsub">${rp1>=15?Math.round(rp1)+'% in 1 hr':Math.round(c.relative_humidity_2m)+'% humidity'}</div></div>`+
-   `<div class="tile"><div class="lab">Pressure <span class="u">(hPa)</span></div><div class="gfx">${sparkSvg(pser,pnow)}</div><div class="val">${Math.round(c.pressure_msl)}</div><div class="tsub">${tr} ${tt}</div></div>`+
+   `<button class="tile" id="tvis"><div class="lab">Visibility <span class="u">(${P.vu})</span></div><div class="gfx al">${visScaleSvg(vk)}</div><div class="val" style="color:${vk==null?'inherit':visCol(vk)}">${visTxt(vk)}</div><div class="tsub">${fogNow?'<span class="fogtag">FOG</span>':fogRisk?'<span style="color:#f6a23d">Fog risk · Δ'+(P.t==='F'?(spread*1.8):spread).toFixed(1)+'°</span>':vk==null?'No data':'<span style="color:'+visCol(vk)+'">'+visWord(vk)+'</span>'}</div></button>`+
    `<button class="tile" id="twave"><div class="lab">Waves <span class="u">(${WVU})</span></div><div class="gfx al">${waveSvg(wh,wd)}</div><div class="val">${wh==null?'–':WV(wh)}</div><div class="tsub">${wh==null?'No marine data here':Math.round(wp)+' s · '+card(wd)+(st!=null?' · sea '+T(st)+'°':'')}</div></button>`+
    tideTile+
    `<div class="tile"><div class="lab">Sun &amp; Moon</div><div class="gfx al">${moonSvg(mi.phase,lat<0,32)}</div>
      <div class="sm" style="margin-bottom:2px"><div>${sunI}<em>↑</em>${fmtMin(strMin(D.daily.sunrise[di]))}<em>↓</em>${fmtMin(strMin(D.daily.sunset[di]))}</div><div>${moonI}<em>↑</em>${fmtMin(tm(mt.rise))}<em>↓</em>${fmtMin(tm(mt.set))}</div></div>
      </div>`;
+  $('tvis').onclick=()=>{P.vu=P.vu==='km'?'nm':'km';savePrefs();render()};
   $('twave').onclick=()=>{P.wv=P.wv==='m'?'ft':'m';savePrefs();render()};
   $('twind').onclick=()=>{P.w=WU[(WU.indexOf(P.w)+1)%WU.length];savePrefs();render()};
 
   // forecast panel: hourly, 3-hourly or daily
+  const hvis=i=>{const hw=Math.floor(P.step/2);let m=Infinity;for(let j=i-hw;j<=i+hw;j++){const v=h.visibility&&h.visibility[j];if(v!=null&&v<m)m=v}return m<Infinity?m/1000:null};
+  const dvis=t=>{let m=Infinity;for(let j=0;j<h.time.length;j++){if(h.time[j].startsWith(t)){const v=h.visibility&&h.visibility[j];if(v!=null&&v<m)m=v}}return m<Infinity?m/1000:null};
   const items=[];
   if(P.step===0){
     const dd=D.daily,md=D.marineDaily,mi=md?Object.fromEntries(md.time.map((t,j)=>[t,j])):null;
     for(let k=0;k<7;k++){const i=di+k;if(i>=dd.time.length)break;const t=dd.time[i],j=mi?mi[t]:null;
-      items.push({t,k,i,code:dd.weather_code[i],day:1,hi:dd.temperature_2m_max[i],lo:dd.temperature_2m_min[i],dir:dd.wind_direction_10m_dominant[i],
+      items.push({t,k,i,vis:dvis(t),code:dd.weather_code[i],day:1,hi:dd.temperature_2m_max[i],lo:dd.temperature_2m_min[i],dir:dd.wind_direction_10m_dominant[i],
         ws:dd.wind_speed_10m_max[i],wg:dd.wind_gusts_10m_max[i],wave:j==null?null:md.wave_height_max[j],wper:j==null?null:md.wave_period_max[j],pp:dd.precipitation_probability_max[i]||0,mm:dd.precipitation_sum[i]||0})}
   }else{
     for(let k=0;k<N;k++){const i=ci+k*P.step;if(i>=h.time.length)break;
-      items.push({t:h.time[i],k,i,code:h.weather_code[i],day:h.is_day[i],hi:h.temperature_2m[i],dir:h.wind_direction_10m[i],ws:h.wind_speed_10m[i],wg:h.wind_gusts_10m[i],
+      items.push({t:h.time[i],k,i,vis:hvis(i),code:h.weather_code[i],day:h.is_day[i],hi:h.temperature_2m[i],dir:h.wind_direction_10m[i],ws:h.wind_speed_10m[i],wg:h.wind_gusts_10m[i],
         wave:mv('wave_height',i),wper:mv('wave_period',i),pp:h.precipitation_probability[i]||0,mm:h.precipitation[i]||0})}
   }
   const n=items.length,daily=P.step===0;
@@ -548,7 +601,7 @@ function render(){
   if(daily)for(let k=-1;k<n;k++){const dstr=k<0?new Date(lm(items[0].t.slice(0,10)+'T00:00')-86400000).toISOString().slice(0,10):items[k].t;const i0=h.time.indexOf(dstr+'T18:00');if(i0<0)continue;let m=Infinity,cnt=0;
     for(let j=0;j<15;j++){const v=h.temperature_2m[i0+j];if(v!=null){cnt++;if(v<m)m=v}}if(cnt>=10&&m<Infinity)loPts.push({x:k+1,v:m})}
   const hiLine=daily?null:[{x:0,v:hv(h.temperature_2m,items[0].i-P.step/2)},...hiPts,{x:n,v:hv(h.temperature_2m,items[n-1].i+P.step/2)}];
-  const allT=hiPts.concat(loPts).map(p=>p.v),tmin=Math.min(...allT),tmax=Math.max(...allT),TH=80,top=daily?22:28,bot=daily?22:10;
+  const allT=hiPts.concat(loPts).map(p=>p.v),tmin=Math.min(...allT),tmax=Math.max(...allT),TH=72,top=daily?30:34,bot=daily?22:10;
   const ty=v=>tmax===tmin?TH/2+8:top+(1-(v-tmin)/(tmax-tmin))*(TH-top-bot);
   let tdots='';
   hiPts.forEach(q=>{const l=q.x/n*100,y=ty(q.v);tdots+=`<span class="dot" style="left:${l}%;top:${y}px"></span><span class="tl" style="left:${l}%;top:${y-9}px">${T(q.v)}°</span>`});
@@ -556,7 +609,7 @@ function render(){
   const chart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${n*100} ${TH}" preserveAspectRatio="none">${mkLine(daily?hiPts.concat(loPts).sort((p,q)=>p.x-q.x):hiLine,'#ffb347','tg',!daily,TH,ty)}</svg>${tdots}</div>`;
 
   // tide curve
-  const TT=68;let tideChart;
+  const TT=64;let tideChart;
   if(!TD)tideChart=`<div class="chart" style="grid-column:2 / span ${n}"><span class="tt" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--mut)">–</span></div>`;
   else{
     let paths='',labels='';const fmtE=e=>`${e.type==='H'?'▲':'▼'}${TU(e.v)} ${fmtMin(strMin(e.t))}`;
@@ -586,7 +639,7 @@ function render(){
   }
 
   // wind: speed line (coloured by strength) with a dashed gust line above it
-  const WHt=150,wmax=Math.max(10,...items.map(o=>o.wg))*1.05,wy=v=>32+(1-Math.min(v,wmax)/wmax)*(WHt-66);
+  const WHt=136,wmax=Math.max(10,...items.map(o=>o.wg))*1.05,wy=v=>32+(1-Math.min(v,wmax)/wmax)*(WHt-66);
   const spPts=items.map((o,k)=>({x:k+.5,v:o.ws})),gsPts=items.map((o,k)=>({x:k+.5,v:o.wg}));
   let spL=spPts,gsL=gsPts;
   {const i0=items[0].i,i1=items[n-1].i;
@@ -601,21 +654,24 @@ function render(){
   const wstopsA=spL.map(q=>`<stop offset="${(q.x/n).toFixed(3)}" stop-color="${wc(q.v)}" stop-opacity=".6"/>`).join('');
   const windArea=`<defs><linearGradient id="wgradf" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${n*100}" y2="0">${wstopsA}</linearGradient><linearGradient id="wfade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient><mask id="wmask" maskUnits="userSpaceOnUse" x="0" y="0" width="${n*100}" height="${WHt}"><rect x="0" y="0" width="${n*100}" height="${WHt}" fill="url(#wfade)"/></mask></defs><path d="${wpd}L${wxy[wxy.length-1][0].toFixed(1)} ${WHt}L${wxy[0][0].toFixed(1)} ${WHt}Z" fill="url(#wgradf)" mask="url(#wmask)"/>`;
   const windChart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${n*100} ${WHt}" preserveAspectRatio="none"><defs><linearGradient id="wgrad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${n*100}" y2="0">${wstops}</linearGradient></defs>${mkLine(gsL,'#cfe6fa','wgl',false,WHt,wy,'4 5',2)}${windArea}${mkLine(spL,'url(#wgrad)','wsl',false,WHt,wy,null,3)}</svg>${items.map((o,k)=>{const l=((k+.5)/n*100).toFixed(2);return `<span class="dot" style="left:${l}%;top:${wy(o.ws)}px;border-color:${wc(o.ws)}"></span><span class="wg" style="left:${l}%;top:${wy(o.wg)-7}px">${W(o.wg)}</span><span class="ws" style="left:${l}%;top:${wy(o.ws)+9}px">${W(o.ws)}</span>`}).join('')}</div>`;
+  const visCell=o=>{const k=o.vis;if(k==null)return '<span class="vv" style="color:var(--mut)">–</span>';const col=visCol(k);
+    return `${isFog(o.code,k)?'<small class="fogtag">FOG</small>':''}<span class="vv" style="color:${col}">${visTxt(k)}</span><i class="vb" style="background:${col}"></i>`};
   $('cols').innerHTML='<span></span>'+items.map(o=>`<i class="${(!daily&&!o.day)?'n':''}"></i>`).join('');
   const cells=f=>items.map(o=>`<div>${f(o)}</div>`).join('');
   const row=(cls,lab,body)=>`<div class="row ${cls}"><b>${lab}</b>${body}</div>`;
   $('rows').innerHTML=
-   row('hd',`<button class="step" id="stepb">${P.step===1?'Hourly':P.step===3?'3-Hours':'Daily'}</button>`,cells(o=>{const t=o.t;
+   row('hd',`<button class="step" id="stepb">${P.step===1?'Hourly':P.step===3?'3-Hours':P.step===6?'6-Hours':'Daily'}</button>`,cells(o=>{const t=o.t;
       if(daily)return `<em>${o.k===0?'Today':MON[+t.slice(5,7)-1]+' '+(+t.slice(8,10))}</em><span>${dow(t)}</span>`;
       const hr=+t.slice(11,13);const lab=o.k===0?'Now':(hr===0||(P.step>1&&o.k>0&&hr<P.step))?dow(t):'';
       return `<em>${lab}</em><span>${hLab(hr)}</span>`}))+
    row('ic','Rain',cells(o=>icon(o.code,o.day)+`<small class="rp" style="color:${o.pp>=50?'#5cb8ff':o.pp>=20?'#cfe6fa':'#8fa0b6'}">${Math.round(o.pp)}%</small>`))+
+   row('vis','Visibility',cells(visCell))+
    row('tp','Temp',chart)+
    row('ar','Wind',cells(o=>`<svg width="28" height="28" viewBox="-10 -10 20 20"><polygon points="0,7 -5.5,-7 0,-3 5.5,-7" fill="#c6d4e6" transform="rotate(${o.dir})"/></svg>`))+
    row('tp wl','Speed',windChart)+
    row('wv','Waves',cells(o=>o.wave==null?'<span style="color:var(--mut)">–</span>':`<span style="color:${o.wave>=2.5?'#f26b4f':o.wave>=1.5?'#f6d04d':'#cfe6fa'}">${WV(o.wave)}</span><small>${Math.round(o.wper)} s</small>`))+
    row('tp td2','Tides',tideChart);
-  $('stepb').onclick=()=>{P.step=P.step===1?3:P.step===3?0:1;savePrefs();render()};
+  $('stepb').onclick=()=>{P.step=P.step===1?3:P.step===3?6:P.step===6?0:1;savePrefs();render()};
 }
 function clock(){
   if(!D)return;
