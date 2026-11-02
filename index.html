@@ -198,11 +198,14 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .row.wl{height:58px}
 .tp{height:80px}
 .td2{height:68px}
-.row.wl{height:112px}
+.row.wl{height:150px}
 .ar{height:30px}
 .wn{height:42px}
 .wn span{font-size:27px}
 .wn small{font-size:16px}
+.wg{position:absolute;transform:translate(-50%,-100%);font-size:17px;font-weight:600;color:#cfe6fa;white-space:nowrap;line-height:1}
+.ws{position:absolute;transform:translate(-50%,0);font-size:25px;font-weight:700;white-space:nowrap;line-height:1}
+.step{border:0;border-radius:0;padding:6px 0;color:var(--mut);letter-spacing:.12em;text-align:left}
 </style>
 </head>
 <body>
@@ -583,7 +586,7 @@ function render(){
   }
 
   // wind: speed line (coloured by strength) with a dashed gust line above it
-  const WHt=112,wmax=Math.max(10,...items.map(o=>o.wg))*1.05,wy=v=>6+(1-Math.min(v,wmax)/wmax)*(WHt-12);
+  const WHt=150,wmax=Math.max(10,...items.map(o=>o.wg))*1.05,wy=v=>32+(1-Math.min(v,wmax)/wmax)*(WHt-66);
   const spPts=items.map((o,k)=>({x:k+.5,v:o.ws})),gsPts=items.map((o,k)=>({x:k+.5,v:o.wg}));
   let spL=spPts,gsL=gsPts;
   {const i0=items[0].i,i1=items[n-1].i;
@@ -594,7 +597,7 @@ function render(){
      spL=[{x:0,v:hv(h.wind_speed_10m,i0-hs)},...spPts,{x:n,v:hv(h.wind_speed_10m,i1+hs)}];
      gsL=[{x:0,v:hv(h.wind_gusts_10m,i0-hs)},...gsPts,{x:n,v:hv(h.wind_gusts_10m,i1+hs)}]}}
   const wstops=spL.map(q=>`<stop offset="${(q.x/n).toFixed(3)}" stop-color="${wc(q.v)}"/>`).join('');
-  const windChart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${n*100} ${WHt}" preserveAspectRatio="none"><defs><linearGradient id="wgrad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${n*100}" y2="0">${wstops}</linearGradient></defs>${mkLine(gsL,'#cfe6fa','wgl',false,WHt,wy,'4 5',2)}${mkLine(spL,'url(#wgrad)','wsl',true,WHt,wy,null,3,'#4fd1c5')}</svg>${spPts.map(q=>`<span class="dot" style="left:${q.x/n*100}%;top:${wy(q.v)}px;border-color:${wc(q.v)}"></span>`).join('')}</div>`;
+  const windChart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${n*100} ${WHt}" preserveAspectRatio="none"><defs><linearGradient id="wgrad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${n*100}" y2="0">${wstops}</linearGradient></defs>${mkLine(gsL,'#cfe6fa','wgl',false,WHt,wy,'4 5',2)}${mkLine(spL,'url(#wgrad)','wsl',true,WHt,wy,null,3,'#4fd1c5')}</svg>${items.map((o,k)=>{const l=((k+.5)/n*100).toFixed(2);return `<span class="dot" style="left:${l}%;top:${wy(o.ws)}px;border-color:${wc(o.ws)}"></span><span class="wg" style="left:${l}%;top:${wy(o.wg)-7}px">${W(o.wg)}</span><span class="ws" style="left:${l}%;top:${wy(o.ws)+9}px">${W(o.ws)}</span>`}).join('')}</div>`;
   $('cols').innerHTML='<span></span>'+items.map(o=>`<i class="${(!daily&&!o.day)?'n':''}"></i>`).join('');
   const cells=f=>items.map(o=>`<div>${f(o)}</div>`).join('');
   const row=(cls,lab,body)=>`<div class="row ${cls}"><b>${lab}</b>${body}</div>`;
@@ -607,7 +610,6 @@ function render(){
    row('tp','Temp',chart)+
    row('ar','Wind',cells(o=>`<svg width="28" height="28" viewBox="-10 -10 20 20"><polygon points="0,7 -5.5,-7 0,-3 5.5,-7" fill="#c6d4e6" transform="rotate(${o.dir})"/></svg>`))+
    row('tp wl',P.w,windChart)+
-   row('wn',daily?'Max / gust':'Spd / gust',cells(o=>`<span>${W(o.ws)}<small>/${W(o.wg)}</small></span>`))+
    row('wv','Waves',cells(o=>o.wave==null?'<span style="color:var(--mut)">–</span>':`<span style="color:${o.wave>=2.5?'#f26b4f':o.wave>=1.5?'#f6d04d':'#cfe6fa'}">${WV(o.wave)}</span><small>${Math.round(o.wper)} s</small>`))+
    row('tp td2','Tides',tideChart);
   $('stepb').onclick=()=>{P.step=P.step===1?3:P.step===3?0:1;savePrefs();render()};
