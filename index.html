@@ -27,7 +27,7 @@ html,body{height:100%;overscroll-behavior:none;touch-action:manipulation;backgro
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 
 /* ---------- top: now ---------- */
-.top{height:282px;flex:none;display:flex;gap:12px}
+.top{height:262px;flex:none;display:flex;gap:12px}
 .hero{width:430px;border-radius:26px;padding:16px 22px 12px;position:relative;overflow:hidden;
   display:flex;flex-direction:column;transition:background .6s;
   background:#1a2436}
@@ -37,9 +37,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .place svg{flex:none;opacity:.9}
 .when{font-size:15px;opacity:.82;margin-top:2px}
 .hero .mid{display:flex;align-items:center;justify-content:space-between;margin-top:auto}
-.temp{font-size:106px;font-weight:300;line-height:.9;letter-spacing:-.04em;text-align:left}
+.temp{font-size:96px;font-weight:300;line-height:.9;letter-spacing:-.04em;text-align:left}
 .temp sup{font-size:48px;font-weight:400;vertical-align:top;position:relative;top:8px;margin-left:2px;letter-spacing:0}
-.hero .ico{width:104px;height:104px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.25))}
+.hero .ico{width:94px;height:94px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.25))}
 .cond{font-size:26px;font-weight:600;margin-top:12px}
 .sub{display:flex;gap:14px;font-size:16px;opacity:.9;margin-top:4px}
 
@@ -47,7 +47,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .tile{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:14px 16px;
   display:flex;flex-direction:column;position:relative;text-align:left;overflow:hidden;min-width:0}
 .lab{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);display:flex;align-items:center;gap:6px}
-.val{font-size:42px;font-weight:600;letter-spacing:-.02em;line-height:1;margin-top:auto}
+.val{font-size:38px;font-weight:600;letter-spacing:-.02em;line-height:1;margin-top:auto}
 .val small{font-size:17px;font-weight:500;color:var(--mut);letter-spacing:0;margin-left:4px}
 .tsub{font-size:14px;color:var(--mut);margin-top:5px;white-space:nowrap}
 .dial{position:absolute;right:12px;top:12px}
@@ -196,6 +196,13 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .rp{font-size:12px;font-weight:500}
 .gfx.al{top:30px;right:14px;width:84px;display:flex;justify-content:center}
 .row.wl{height:58px}
+.tp{height:80px}
+.td2{height:68px}
+.row.wl{height:112px}
+.ar{height:30px}
+.wn{height:42px}
+.wn span{font-size:27px}
+.wn small{font-size:16px}
 </style>
 </head>
 <body>
@@ -411,7 +418,7 @@ const sunI='<svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8
 const moonI='<svg width="16" height="16" viewBox="0 0 16 16"><path d="M10 1.5A6.5 6.5 0 1 0 14.5 11 5.2 5.2 0 0 1 10 1.5z" fill="#dfe6ff"/></svg>';
 function dropSvg(hum,w=34,hg=44){const y=(43-40*Math.max(0,Math.min(100,hum))/100).toFixed(1),d='M17 3C17 3 3 20 3 29a14 14 0 0 0 28 0C31 20 17 3 17 3Z';
   return `<svg width="${w}" height="${hg}" viewBox="0 0 34 44"><defs><clipPath id="dc"><rect x="0" y="${y}" width="34" height="44"/></clipPath></defs><path d="${d}" fill="#5cb8ff" clip-path="url(#dc)" opacity=".9"/><path d="${d}" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="2"/></svg>`}
-function sparkSvg(v,now){const W_=84,H_=26,mn=Math.min(...v),mx=Math.max(...v),sp=Math.max(mx-mn,2),n=v.length;
+function sparkSvg(v,now){const W_=84,H_=22,mn=Math.min(...v),mx=Math.max(...v),sp=Math.max(mx-mn,2),n=v.length;
   const pt=i=>[i/(n-1)*W_,H_-3-(v[i]-mn)/sp*(H_-6)];
   const path=(a,b)=>{let o='';for(let i=a;i<=b;i++){const [x,y]=pt(i);o+=(i===a?'M':'L')+x.toFixed(1)+' '+y.toFixed(1)}return o};
   const [nx,ny]=pt(now);
@@ -425,7 +432,7 @@ function tideSvg(nowMs){
   const X=k=>(k+12)/48*84,Y=v=>30-(v-mn)/sp*26;
   let d='';pts.forEach((p,i)=>d+=(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)+' ');
   const lx=X(pts[pts.length-1][0]).toFixed(1),fx=X(pts[0][0]).toFixed(1),nv=tideH(nowMs);
-  return `<svg width="84" height="36" viewBox="0 0 84 34" preserveAspectRatio="none"><defs><linearGradient id="tdg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5cb8ff" stop-opacity=".45"/><stop offset="1" stop-color="#5cb8ff" stop-opacity="0"/></linearGradient></defs><path d="${d}L${lx} 34L${fx} 34Z" fill="url(#tdg)"/><path d="${d}" fill="none" stroke="#5cb8ff" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${nv!=null?`<circle cx="${X(0).toFixed(1)}" cy="${Y(nv).toFixed(1)}" r="4" fill="#fff" stroke="#5cb8ff" stroke-width="2"/>`:''}</svg>`}
+  return `<svg width="84" height="28" viewBox="0 0 84 34" preserveAspectRatio="none"><defs><linearGradient id="tdg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5cb8ff" stop-opacity=".45"/><stop offset="1" stop-color="#5cb8ff" stop-opacity="0"/></linearGradient></defs><path d="${d}L${lx} 34L${fx} 34Z" fill="url(#tdg)"/><path d="${d}" fill="none" stroke="#5cb8ff" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${nv!=null?`<circle cx="${X(0).toFixed(1)}" cy="${Y(nv).toFixed(1)}" r="4" fill="#fff" stroke="#5cb8ff" stroke-width="2"/>`:''}</svg>`}
 function waveSvg(hm,wdir){            // sea-state pictogram: flatter/rippled -> steep breaking waves with foam and spray
   if(hm==null)return '<svg width="56" height="34" viewBox="0 0 56 34"><line x1="2" y1="20" x2="54" y2="20" stroke="#566478" stroke-width="2" stroke-dasharray="3 5" stroke-linecap="round"/></svg>';
   const names=['Glassy','Rippled','Smooth','Slight','Moderate','Rough','Very rough','High'];
@@ -439,7 +446,7 @@ function waveSvg(hm,wdir){            // sea-state pictogram: flatter/rippled ->
     foam+=`<circle cx="${(x-1.5).toFixed(1)}" cy="${(y-1.5).toFixed(1)}" r="1.5" fill="#fff"/><circle cx="${(x+1.8).toFixed(1)}" cy="${(y-.5).toFixed(1)}" r="1.2" fill="#fff"/>`;
     if(lvl>=6)foam+=`<circle cx="${(x+.5).toFixed(1)}" cy="${(y-5).toFixed(1)}" r="1" fill="#fff" opacity=".8"/><circle cx="${(x-3).toFixed(1)}" cy="${(y-4).toFixed(1)}" r=".9" fill="#fff" opacity=".7"/>`}
   const comp=wdir==null?'':`<circle cx="28" cy="11" r="10" fill="rgba(255,255,255,.04)" stroke="#566478" stroke-width="1.4"/><line x1="28" y1="1" x2="28" y2="3.5" stroke="#8fa0b6" stroke-width="1.6"/><g transform="rotate(${wdir+180} 28 11)"><polygon points="28,3.5 24,15 28,12.5 32,15" fill="#fff"/></g>`;
-  return `<div style="text-align:center"><svg width="56" height="${wdir==null?34:52}" viewBox="0 ${wdir==null?0:-18} 56 ${wdir==null?34:52}"><defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".5"/><stop offset="1" stop-color="${col}" stop-opacity=".05"/></linearGradient></defs><path d="${d}L56 34L0 34Z" fill="url(#wg)"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${foam}${comp?`<g transform="translate(0 -18)">${comp}</g>`:''}</svg><div class="wcap">${names[lvl]}</div></div>`}
+  return `<div style="text-align:center"><svg width="50" height="${wdir==null?31:47}" viewBox="0 ${wdir==null?0:-18} 56 ${wdir==null?34:52}"><defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".5"/><stop offset="1" stop-color="${col}" stop-opacity=".05"/></linearGradient></defs><path d="${d}L56 34L0 34Z" fill="url(#wg)"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${foam}${comp?`<g transform="translate(0 -18)">${comp}</g>`:''}</svg><div class="wcap">${names[lvl]}</div></div>`}
 function dial(deg){ // arrow shows where the wind blows toward
   return `<svg class="dial" width="66" height="66" viewBox="0 0 76 76"><circle cx="38" cy="38" r="33" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="2"/>
   <g font-size="9" font-weight="700" fill="#8fa0b6" text-anchor="middle"><text x="38" y="12">N</text><text x="66" y="41">E</text><text x="38" y="70">S</text><text x="10" y="41">W</text></g>
@@ -487,11 +494,11 @@ function render(){
   else tideTile=`<div class="tile"><div class="lab">Tides</div><div class="gfx">${waveSvg(null)}</div><div class="val" style="font-size:30px">–</div><div class="tsub">${TDL?'Loading…':'No tide data here'}</div></div>`;
   $('tiles').innerHTML=
    `<button class="tile" id="twind"><div class="lab">Wind <span class="u">(${P.w})</span></div>${dial(c.wind_direction_10m)}<div class="val">${W(c.wind_speed_10m)}</div><div class="tsub">Gust ${W(c.wind_gusts_10m)} · ${card(c.wind_direction_10m)}</div></button>`+
-   `<div class="tile"><div class="lab">Rain <span class="u">(mm)</span></div><div class="gfx" style="top:12px">${dropSvg(rp1,38,50)}</div><div class="val">${next24<0.05?'0':next24.toFixed(1)}<small>/ 24hr</small></div><div class="tsub">${rp1>=15?Math.round(rp1)+'% in 1 hr':Math.round(c.relative_humidity_2m)+'% humidity'}</div></div>`+
+   `<div class="tile"><div class="lab">Rain <span class="u">(mm)</span></div><div class="gfx" style="top:12px">${dropSvg(rp1,30,40)}</div><div class="val">${next24<0.05?'0':next24.toFixed(1)}<small>/ 24hr</small></div><div class="tsub">${rp1>=15?Math.round(rp1)+'% in 1 hr':Math.round(c.relative_humidity_2m)+'% humidity'}</div></div>`+
    `<div class="tile"><div class="lab">Pressure <span class="u">(hPa)</span></div><div class="gfx">${sparkSvg(pser,pnow)}</div><div class="val">${Math.round(c.pressure_msl)}</div><div class="tsub">${tr} ${tt}</div></div>`+
    `<button class="tile" id="twave"><div class="lab">Waves <span class="u">(${WVU})</span></div><div class="gfx al">${waveSvg(wh,wd)}</div><div class="val">${wh==null?'–':WV(wh)}</div><div class="tsub">${wh==null?'No marine data here':Math.round(wp)+' s · '+card(wd)+(st!=null?' · sea '+T(st)+'°':'')}</div></button>`+
    tideTile+
-   `<div class="tile"><div class="lab">Sun &amp; Moon</div><div class="gfx al">${moonSvg(mi.phase,lat<0,38)}</div>
+   `<div class="tile"><div class="lab">Sun &amp; Moon</div><div class="gfx al">${moonSvg(mi.phase,lat<0,32)}</div>
      <div class="sm" style="margin-bottom:2px"><div>${sunI}<em>↑</em>${fmtMin(strMin(D.daily.sunrise[di]))}<em>↓</em>${fmtMin(strMin(D.daily.sunset[di]))}</div><div>${moonI}<em>↑</em>${fmtMin(tm(mt.rise))}<em>↓</em>${fmtMin(tm(mt.set))}</div></div>
      </div>`;
   $('twave').onclick=()=>{P.wv=P.wv==='m'?'ft':'m';savePrefs();render()};
@@ -538,7 +545,7 @@ function render(){
   if(daily)for(let k=-1;k<n;k++){const dstr=k<0?new Date(lm(items[0].t.slice(0,10)+'T00:00')-86400000).toISOString().slice(0,10):items[k].t;const i0=h.time.indexOf(dstr+'T18:00');if(i0<0)continue;let m=Infinity,cnt=0;
     for(let j=0;j<15;j++){const v=h.temperature_2m[i0+j];if(v!=null){cnt++;if(v<m)m=v}}if(cnt>=10&&m<Infinity)loPts.push({x:k+1,v:m})}
   const hiLine=daily?null:[{x:0,v:hv(h.temperature_2m,items[0].i-P.step/2)},...hiPts,{x:n,v:hv(h.temperature_2m,items[n-1].i+P.step/2)}];
-  const allT=hiPts.concat(loPts).map(p=>p.v),tmin=Math.min(...allT),tmax=Math.max(...allT),TH=90,top=daily?24:28,bot=daily?24:10;
+  const allT=hiPts.concat(loPts).map(p=>p.v),tmin=Math.min(...allT),tmax=Math.max(...allT),TH=80,top=daily?22:28,bot=daily?22:10;
   const ty=v=>tmax===tmin?TH/2+8:top+(1-(v-tmin)/(tmax-tmin))*(TH-top-bot);
   let tdots='';
   hiPts.forEach(q=>{const l=q.x/n*100,y=ty(q.v);tdots+=`<span class="dot" style="left:${l}%;top:${y}px"></span><span class="tl" style="left:${l}%;top:${y-9}px">${T(q.v)}°</span>`});
@@ -546,7 +553,7 @@ function render(){
   const chart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${n*100} ${TH}" preserveAspectRatio="none">${mkLine(daily?hiPts.concat(loPts).sort((p,q)=>p.x-q.x):hiLine,'#ffb347','tg',!daily,TH,ty)}</svg>${tdots}</div>`;
 
   // tide curve
-  const TT=76;let tideChart;
+  const TT=68;let tideChart;
   if(!TD)tideChart=`<div class="chart" style="grid-column:2 / span ${n}"><span class="tt" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--mut)">–</span></div>`;
   else{
     let paths='',labels='';const fmtE=e=>`${e.type==='H'?'▲':'▼'}${TU(e.v)} ${fmtMin(strMin(e.t))}`;
@@ -576,7 +583,7 @@ function render(){
   }
 
   // wind: speed line (coloured by strength) with a dashed gust line above it
-  const WHt=58,wmax=Math.max(10,...items.map(o=>o.wg))*1.05,wy=v=>6+(1-Math.min(v,wmax)/wmax)*(WHt-12);
+  const WHt=112,wmax=Math.max(10,...items.map(o=>o.wg))*1.05,wy=v=>6+(1-Math.min(v,wmax)/wmax)*(WHt-12);
   const spPts=items.map((o,k)=>({x:k+.5,v:o.ws})),gsPts=items.map((o,k)=>({x:k+.5,v:o.wg}));
   let spL=spPts,gsL=gsPts;
   {const i0=items[0].i,i1=items[n-1].i;
@@ -598,7 +605,7 @@ function render(){
       return `<em>${lab}</em><span>${hLab(hr)}</span>`}))+
    row('ic','Rain',cells(o=>icon(o.code,o.day)+`<small class="rp" style="color:${o.pp>=50?'#5cb8ff':o.pp>=20?'#cfe6fa':'#8fa0b6'}">${Math.round(o.pp)}%</small>`))+
    row('tp','Temp',chart)+
-   row('ar','Wind',cells(o=>`<svg width="20" height="20" viewBox="-10 -10 20 20"><polygon points="0,7 -5.5,-7 0,-3 5.5,-7" fill="#a9bbd0" transform="rotate(${o.dir})"/></svg>`))+
+   row('ar','Wind',cells(o=>`<svg width="28" height="28" viewBox="-10 -10 20 20"><polygon points="0,7 -5.5,-7 0,-3 5.5,-7" fill="#c6d4e6" transform="rotate(${o.dir})"/></svg>`))+
    row('tp wl',P.w,windChart)+
    row('wn',daily?'Max / gust':'Spd / gust',cells(o=>`<span>${W(o.ws)}<small>/${W(o.wg)}</small></span>`))+
    row('wv','Waves',cells(o=>o.wave==null?'<span style="color:var(--mut)">–</span>':`<span style="color:${o.wave>=2.5?'#f26b4f':o.wave>=1.5?'#f6d04d':'#cfe6fa'}">${WV(o.wave)}</span><small>${Math.round(o.wper)} s</small>`))+
