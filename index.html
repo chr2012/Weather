@@ -238,6 +238,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .tp{height:72px}
 .row.wl{height:136px}
 .td2{height:64px}
+.row.vis{height:32px}
+.vd{color:var(--mut);margin:0 2px;font-weight:500}
+.cols i.n{background:rgba(255,206,110,.06)}
 </style>
 </head>
 <body>
@@ -561,11 +564,12 @@ function render(){
   // forecast panel: hourly, 3-hourly or daily
   const hvis=i=>{const hw=Math.floor(P.step/2);let m=Infinity;for(let j=i-hw;j<=i+hw;j++){const v=h.visibility&&h.visibility[j];if(v!=null&&v<m)m=v}return m<Infinity?m/1000:null};
   const dvis=t=>{let m=Infinity;for(let j=0;j<h.time.length;j++){if(h.time[j].startsWith(t)){const v=h.visibility&&h.visibility[j];if(v!=null&&v<m)m=v}}return m<Infinity?m/1000:null};
+  const dvmax=t=>{let m=-Infinity;for(let j=0;j<h.time.length;j++){if(h.time[j].startsWith(t)){const v=h.visibility&&h.visibility[j];if(v!=null&&v>m)m=v}}return m>-Infinity?m/1000:null};
   const items=[];
   if(P.step===0){
     const dd=D.daily,md=D.marineDaily,mi=md?Object.fromEntries(md.time.map((t,j)=>[t,j])):null;
     for(let k=0;k<7;k++){const i=di+k;if(i>=dd.time.length)break;const t=dd.time[i],j=mi?mi[t]:null;
-      items.push({t,k,i,vis:dvis(t),code:dd.weather_code[i],day:1,hi:dd.temperature_2m_max[i],lo:dd.temperature_2m_min[i],dir:dd.wind_direction_10m_dominant[i],
+      items.push({t,k,i,vis:dvis(t),visMax:dvmax(t),code:dd.weather_code[i],day:1,hi:dd.temperature_2m_max[i],lo:dd.temperature_2m_min[i],dir:dd.wind_direction_10m_dominant[i],
         ws:dd.wind_speed_10m_max[i],wg:dd.wind_gusts_10m_max[i],wave:j==null?null:md.wave_height_max[j],wper:j==null?null:md.wave_period_max[j],pp:dd.precipitation_probability_max[i]||0,mm:dd.precipitation_sum[i]||0})}
   }else{
     for(let k=0;k<N;k++){const i=ci+k*P.step;if(i>=h.time.length)break;
@@ -654,9 +658,11 @@ function render(){
   const wstopsA=spL.map(q=>`<stop offset="${(q.x/n).toFixed(3)}" stop-color="${wc(q.v)}" stop-opacity=".6"/>`).join('');
   const windArea=`<defs><linearGradient id="wgradf" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${n*100}" y2="0">${wstopsA}</linearGradient><linearGradient id="wfade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient><mask id="wmask" maskUnits="userSpaceOnUse" x="0" y="0" width="${n*100}" height="${WHt}"><rect x="0" y="0" width="${n*100}" height="${WHt}" fill="url(#wfade)"/></mask></defs><path d="${wpd}L${wxy[wxy.length-1][0].toFixed(1)} ${WHt}L${wxy[0][0].toFixed(1)} ${WHt}Z" fill="url(#wgradf)" mask="url(#wmask)"/>`;
   const windChart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${n*100} ${WHt}" preserveAspectRatio="none"><defs><linearGradient id="wgrad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${n*100}" y2="0">${wstops}</linearGradient></defs>${mkLine(gsL,'#cfe6fa','wgl',false,WHt,wy,'4 5',2)}${windArea}${mkLine(spL,'url(#wgrad)','wsl',false,WHt,wy,null,3)}</svg>${items.map((o,k)=>{const l=((k+.5)/n*100).toFixed(2);return `<span class="dot" style="left:${l}%;top:${wy(o.ws)}px;border-color:${wc(o.ws)}"></span><span class="wg" style="left:${l}%;top:${wy(o.wg)-7}px">${W(o.wg)}</span><span class="ws" style="left:${l}%;top:${wy(o.ws)+9}px">${W(o.ws)}</span>`}).join('')}</div>`;
-  const visCell=o=>{const k=o.vis;if(k==null)return '<span class="vv" style="color:var(--mut)">–</span>';const col=visCol(k);
-    return `${isFog(o.code,k)?'<small class="fogtag">FOG</small>':''}<span class="vv" style="color:${col}">${visTxt(k)}</span><i class="vb" style="background:${col}"></i>`};
-  $('cols').innerHTML='<span></span>'+items.map(o=>`<i class="${(!daily&&!o.day)?'n':''}"></i>`).join('');
+  const visCell=o=>{const k=o.vis;if(k==null)return '<span class="vv" style="color:var(--mut)">–</span>';
+    const tag=isFog(o.code,k)?'<small class="fogtag">FOG</small>':'';
+    if(daily&&o.visMax!=null&&visTxt(o.visMax)!==visTxt(k))return `${tag}<span class="vv"><span style="color:${visCol(k)}">${visTxt(k)}</span><span class="vd">–</span><span style="color:${visCol(o.visMax)}">${visTxt(o.visMax)}</span></span>`;
+    return `${tag}<span class="vv" style="color:${visCol(k)}">${visTxt(k)}</span>`};
+  $('cols').innerHTML='<span></span>'+items.map(o=>`<i class="${(!daily&&o.day)?'n':''}"></i>`).join('');
   const cells=f=>items.map(o=>`<div>${f(o)}</div>`).join('');
   const row=(cls,lab,body)=>`<div class="row ${cls}"><b>${lab}</b>${body}</div>`;
   $('rows').innerHTML=
