@@ -247,6 +247,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .ic{height:34px}
 .row.vis{height:34px}
 .row.wvl{height:78px}
+.ws small{font-size:12px;font-weight:500;color:var(--mut);margin-left:3px}
 </style>
 </head>
 <body>
@@ -503,8 +504,8 @@ function waveSvg(hm,wdir){            // sea-state pictogram: flatter/rippled ->
   if(lvl>=4)for(let k=0;k<4;k++){const x=lam*(0.25+k);if(x>54)continue;const y=Y(x);
     foam+=`<circle cx="${(x-1.5).toFixed(1)}" cy="${(y-1.5).toFixed(1)}" r="1.5" fill="#fff"/><circle cx="${(x+1.8).toFixed(1)}" cy="${(y-.5).toFixed(1)}" r="1.2" fill="#fff"/>`;
     if(lvl>=6)foam+=`<circle cx="${(x+.5).toFixed(1)}" cy="${(y-5).toFixed(1)}" r="1" fill="#fff" opacity=".8"/><circle cx="${(x-3).toFixed(1)}" cy="${(y-4).toFixed(1)}" r=".9" fill="#fff" opacity=".7"/>`}
-  const comp=wdir==null?'':`<circle cx="28" cy="11" r="12" fill="#131b29" stroke="#566478" stroke-width="1.4"/><line x1="28" y1="1" x2="28" y2="3.5" stroke="#8fa0b6" stroke-width="1.6"/><g transform="translate(28 11) scale(1.35) rotate(${wdir+180}) translate(-28 -11)"><polygon points="28,3.5 24,15 28,12.5 32,15" fill="#fff"/></g>`;
-  return `<div style="text-align:center"><svg width="${wdir==null?50:52}" height="${wdir==null?31:51}" viewBox="0 ${wdir==null?0:-21} 56 ${wdir==null?34:55}"><defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".5"/><stop offset="1" stop-color="${col}" stop-opacity=".05"/></linearGradient></defs><path d="${d}L56 34L0 34Z" fill="url(#wg)"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${foam}${comp?`<g transform="translate(0 -18)">${comp}</g>`:''}</svg><div class="wcap">${names[lvl]}</div></div>`}
+  const comp=wdir==null?'':`<svg width="24" height="24" viewBox="-10 -10 20 20" style="display:block;margin:0 auto 4px"><circle r="9.3" fill="#131b29" stroke="#566478" stroke-width="1.2"/><polygon points="0,7 -5.5,-7 0,-3 5.5,-7" fill="#9fd4ff" transform="rotate(${wdir})"/></svg>`;
+  return `<div style="text-align:center">${comp}<svg width="50" height="31" viewBox="0 0 56 34"><defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".5"/><stop offset="1" stop-color="${col}" stop-opacity=".05"/></linearGradient></defs><path d="${d}L56 34L0 34Z" fill="url(#wg)"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${foam}</svg><div class="wcap">${names[lvl]}</div></div>`}
 function dial(deg){ // arrow shows where the wind blows toward
   return `<svg class="dial" width="66" height="66" viewBox="0 0 76 76"><circle cx="38" cy="38" r="33" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="2"/>
   <g font-size="9" font-weight="700" fill="#8fa0b6" text-anchor="middle"><text x="38" y="12">N</text><text x="66" y="41">E</text><text x="38" y="70">S</text><text x="10" y="41">W</text></g>
@@ -558,7 +559,7 @@ function render(){
    `<button class="tile" id="twind"><div class="lab">Wind <span class="u">(${P.w})</span></div>${dial(c.wind_direction_10m)}<div class="val">${W(c.wind_speed_10m)}</div><div class="tsub">Gust ${W(c.wind_gusts_10m)} · ${card(c.wind_direction_10m)}</div></button>`+
    `<div class="tile"><div class="lab">Rain <span class="u">(mm)</span></div><div class="gfx" style="top:12px">${dropSvg(rp1,30,40)}</div><div class="val">${next24<0.05?'0':next24.toFixed(1)}<small>/ 24hr</small></div><div class="tsub">${rp1>=15?Math.round(rp1)+'% in 1 hr':Math.round(c.relative_humidity_2m)+'% humidity'}</div></div>`+
    `<button class="tile" id="tvis"><div class="lab">Visibility <span class="u">(${P.vu})</span></div><div class="gfx al">${visScaleSvg(vk)}</div><div class="val" style="color:${vk==null?'inherit':visCol(vk)}">${visTxt(vk)}</div><div class="tsub">${fogNow?'<span class="fogtag">FOG</span>':fogRisk?'<span style="color:#f6a23d">Fog risk · Δ'+(P.t==='F'?(spread*1.8):spread).toFixed(1)+'°</span>':vk==null?'No data':'<span style="color:'+visCol(vk)+'">'+visWord(vk)+'</span>'}</div></button>`+
-   `<button class="tile" id="twave"><div class="lab">Waves <span class="u">(${WVU})</span></div><div class="gfx al" style="top:27px">${waveSvg(wh,wd)}</div><div class="val">${wh==null?'–':WV(wh)}</div><div class="tsub">${wh==null?'No marine data here':Math.round(wp)+'s · '+card(wd)+(st!=null?' · sea '+T(st)+'°':'')}</div></button>`+
+   `<button class="tile" id="twave"><div class="lab">Waves <span class="u">(${WVU})</span></div><div class="gfx al" style="top:14px">${waveSvg(wh,wd)}</div><div class="val">${wh==null?'–':WV(wh)}</div><div class="tsub">${wh==null?'No marine data here':Math.round(wp)+'s · '+card(wd)+(st!=null?' · sea '+T(st)+'°':'')}</div></button>`+
    tideTile+
    `<div class="tile"><div class="lab">Sun &amp; Moon</div><div class="gfx al">${moonSvg(mi.phase,lat<0,32)}</div>
      <div class="sm" style="margin-bottom:2px"><div>${sunI}<em>↑</em>${fmtMin(strMin(D.daily.sunrise[di]))}<em>↓</em>${fmtMin(strMin(D.daily.sunset[di]))}</div><div>${moonI}<em>↑</em>${fmtMin(tm(mt.rise))}<em>↓</em>${fmtMin(tm(mt.set))}</div></div>
@@ -664,25 +665,39 @@ function render(){
   const wstopsA=spL.map(q=>`<stop offset="${(q.x/n).toFixed(3)}" stop-color="${wc(q.v)}" stop-opacity=".6"/>`).join('');
   const windArea=`<defs><linearGradient id="wgradf" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${n*100}" y2="0">${wstopsA}</linearGradient><linearGradient id="wfade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient><mask id="wmask" maskUnits="userSpaceOnUse" x="0" y="0" width="${n*100}" height="${WHt}"><rect x="0" y="0" width="${n*100}" height="${WHt}" fill="url(#wfade)"/></mask></defs><path d="${wpd}L${wxy[wxy.length-1][0].toFixed(1)} ${WHt}L${wxy[0][0].toFixed(1)} ${WHt}Z" fill="url(#wgradf)" mask="url(#wmask)"/>`;
   const windChart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${n*100} ${WHt}" preserveAspectRatio="none"><defs><linearGradient id="wgrad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${n*100}" y2="0">${wstops}</linearGradient></defs>${mkLine(gsL,'#cfe6fa','wgl',false,WHt,wy,'4 5',2)}${windArea}${mkLine(spL,'url(#wgrad)','wsl',false,WHt,wy,null,3)}</svg>${items.map((o,k)=>{const l=((k+.5)/n*100).toFixed(2);return `<svg class="wind-dir" style="left:${l}%;top:${wy(o.ws)}px" width="24" height="24" viewBox="-10 -10 20 20"><circle r="9.3" fill="#131b29" stroke="#566478" stroke-width="1.2"/><polygon points="0,7 -5.5,-7 0,-3 5.5,-7" fill="#c6d4e6" transform="rotate(${o.dir})"/></svg><span class="wg" style="left:${l}%;top:${Math.min(wy(o.wg)-7,wy(o.ws)-18)}px">${W(o.wg)}</span><span class="ws" style="left:${l}%;top:${wy(o.ws)+18}px">${W(o.ws)}</span>`}).join('')}</div>`;
-  // waves: smooth line coloured by sea state (same scale as the Waves icon), period above, direction arrow on the line, height below
+  // waves: the Waves-card sea-state picture stretched across the card (size, steepness, foam and colour follow the sea state)
   const seaCol=v=>v>=4?'#f26b4f':v>=2.5?'#f6d04d':'#5cb8ff';
   const mvf=(key,x)=>{const i0=Math.floor(x),f=x-i0,a=mv(key,i0),b=mv(key,i0+1);return a==null?b:(b==null||f===0)?a:a+(b-a)*f};
-  const TW=78,wPts=items.map((o,k)=>({x:k+.5,v:o.wave,o})).filter(q=>q.v!=null);
+  const KA=[[0,0],[.1,.9],[.5,2],[1.25,3.6],[2.5,5.6],[4,8],[6,10.5],[9,12.5]],KL=[[0,30],[.1,28],[.5,26],[1.25,24],[2.5,22],[4,20],[6,18],[9,17]];
+  const kint=(K,v)=>{if(v<=K[0][0])return K[0][1];for(let i=1;i<K.length;i++){if(v<=K[i][0]){const f=(v-K[i-1][0])/(K[i][0]-K[i-1][0]);return K[i-1][1]+(K[i][1]-K[i-1][1])*f}}return K[K.length-1][1]};
+  const TW=78,W0=882,AMAX=8,wPts=items.map((o,k)=>({x:k+.5,v:o.wave,o})).filter(q=>q.v!=null);
   let waveChart;
   if(wPts.length<2)waveChart=`<div class="chart" style="grid-column:2 / span ${n}"><span class="tt" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--mut)">–</span></div>`;
   else{
-    const vmax=Math.max(1,...wPts.map(q=>q.v))*1.15,wvy=v=>26+(1-Math.min(v,vmax)/vmax)*(TW-56);
+    const vmax=Math.max(1,...wPts.map(q=>q.v))*1.15,wvy=v=>18+(1-Math.min(v,vmax)/vmax)*22;
     const first=wPts[0].v,last=wPts[wPts.length-1].v;
     const eL=daily?first:(mvf('wave_height',items[0].i-P.step/2)??first),eR=daily?last:(mvf('wave_height',items[n-1].i+P.step/2)??last);
     const wL=[{x:0,v:eL},...wPts,{x:n,v:eR}];
+    const hmAt=xc=>{if(xc<=wL[0].x)return wL[0].v;for(let i=1;i<wL.length;i++){if(xc<=wL[i].x){const f=(xc-wL[i-1].x)/(wL[i].x-wL[i-1].x);return wL[i-1].v+(wL[i].v-wL[i-1].v)*(1-Math.cos(Math.PI*f))/2}}return wL[wL.length-1].v};
+    let d='',foam='',phase=0,lastK=-1;
+    for(let x=0;x<=W0;x+=2){
+      const hh=hmAt(x/W0*n),A=kint(KA,hh)/12.5*AMAX,lam=kint(KL,hh)*1.7,sk=hh>=1.25?.3:.1;
+      phase+=2*Math.PI*2/lam;
+      const y=wvy(hh)-A*(Math.sin(phase)+sk*Math.sin(2*phase))/(1+sk);
+      d+=(x?'L':'M')+x+' '+y.toFixed(1)+' ';
+      const kk=Math.floor((phase-Math.PI/2)/(2*Math.PI));
+      if(kk!==lastK){if(lastK!==-1&&hh>=1.25){
+        foam+=`<circle cx="${(x-2).toFixed(1)}" cy="${(y-2.4).toFixed(1)}" r="1.8" fill="#fff"/><circle cx="${(x+2.4).toFixed(1)}" cy="${(y-.8).toFixed(1)}" r="1.4" fill="#fff"/>`;
+        if(hh>=4)foam+=`<circle cx="${(x+.5).toFixed(1)}" cy="${(y-6.5).toFixed(1)}" r="1.1" fill="#fff" opacity=".8"/><circle cx="${(x-3.5).toFixed(1)}" cy="${(y-5).toFixed(1)}" r="1" fill="#fff" opacity=".7"/>`}
+        lastK=kk}
+    }
     const stp=op=>wL.map(q=>`<stop offset="${(q.x/n).toFixed(3)}" stop-color="${seaCol(q.v)}"${op?` stop-opacity="${op}"`:''}/>`).join('');
-    const xy=wL.map(q=>[q.x*100,wvy(q.v)]),pd2=smoothD(xy);
-    const defs=`<defs><linearGradient id="vgrad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${n*100}" y2="0">${stp()}</linearGradient><linearGradient id="vgradf" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${n*100}" y2="0">${stp('.6')}</linearGradient><linearGradient id="vfade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient><mask id="vmask" maskUnits="userSpaceOnUse" x="0" y="0" width="${n*100}" height="${TW}"><rect x="0" y="0" width="${n*100}" height="${TW}" fill="url(#vfade)"/></mask></defs>`;
-    const area=`<path d="${pd2}L${xy[xy.length-1][0].toFixed(1)} ${TW}L${xy[0][0].toFixed(1)} ${TW}Z" fill="url(#vgradf)" mask="url(#vmask)"/>`;
+    const defs=`<defs><linearGradient id="vgrad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${W0}" y2="0">${stp()}</linearGradient><linearGradient id="vgradf" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${W0}" y2="0">${stp('.6')}</linearGradient><linearGradient id="vfade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient><mask id="vmask" maskUnits="userSpaceOnUse" x="0" y="0" width="${W0}" height="${TW}"><rect x="0" y="0" width="${W0}" height="${TW}" fill="url(#vfade)"/></mask></defs>`;
+    const area=`<path d="${d}L${W0} ${TW}L0 ${TW}Z" fill="url(#vgradf)" mask="url(#vmask)"/>`;
     const marks=wPts.map(q=>{const l=(q.x/n*100).toFixed(2),y=wvy(q.v),o=q.o;
       const arrow=o.wdir==null?`<span class="dot" style="left:${l}%;top:${y}px;border-color:${seaCol(q.v)}"></span>`:`<svg class="wind-dir" style="left:${l}%;top:${y}px" width="24" height="24" viewBox="-10 -10 20 20"><circle r="9.3" fill="#131b29" stroke="#566478" stroke-width="1.2"/><polygon points="0,7 -5.5,-7 0,-3 5.5,-7" fill="#9fd4ff" transform="rotate(${o.wdir})"/></svg>`;
-      return `${arrow}${o.wper!=null?`<span class="wg" style="left:${l}%;top:${y-15}px">${Math.round(o.wper)}s</span>`:''}<span class="ws" style="left:${l}%;top:${y+16}px;color:${q.v>=2.5?seaCol(q.v):'#fff'}">${WV(q.v)}</span>`}).join('');
-    waveChart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${n*100} ${TW}" preserveAspectRatio="none">${defs}${area}${mkLine(wL,'url(#vgrad)','vsl',false,TW,wvy,null,3)}</svg>${marks}</div>`;
+      return `${arrow}<span class="ws" style="left:${l}%;top:${y+16}px;color:${q.v>=2.5?seaCol(q.v):'#fff'}">${WV(q.v)}${o.wper!=null?`<small>${Math.round(o.wper)}s</small>`:''}</span>`}).join('');
+    waveChart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${W0} ${TW}" preserveAspectRatio="none">${defs}${area}<path d="${d}" fill="none" stroke="url(#vgrad)" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>${foam}</svg>${marks}</div>`;
   }
   const visCell=o=>{const k=o.vis;if(k==null)return '<span class="vv" style="color:var(--mut)">–</span>';
     const tag=isFog(o.code,k)?'<small class="fogtag">FOG</small>':'';
