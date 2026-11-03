@@ -179,7 +179,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .tt{font-size:12.5px;font-weight:600;white-space:nowrap}
 .sub .upd{margin-left:auto;margin-top:0;font-size:13px;opacity:.85}
 .hero{padding-bottom:12px}
-.wcap{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8fa0b6;margin-top:2px;line-height:1.1}
+.wcap{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8fa0b6;margin-top:1px;line-height:1.1}
 .rn2{margin-top:auto;display:flex;align-items:center;gap:10px;margin-bottom:4px}
 .rn2 b{display:block;font-size:30px;line-height:1;font-weight:600;letter-spacing:-.02em}
 .rn2 span{display:block;font-size:12.5px;color:var(--mut);line-height:1.25}
@@ -242,6 +242,11 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .row.vis{height:32px}
 .vd{color:var(--mut);margin:0 2px;font-weight:500}
 .cols i.n{background:rgba(255,206,110,.06)}
+.tp{height:66px}
+.td2{height:58px}
+.ic{height:34px}
+.row.vis{height:34px}
+.row.wvl{height:78px}
 </style>
 </head>
 <body>
@@ -393,7 +398,7 @@ async function fetchWx(l){
   '&daily=weather_code,sunrise,sunset,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant'+
   '&wind_speed_unit=kn&timezone=auto&past_days=1&forecast_days=8';
   const mu='https://marine-api.open-meteo.com/v1/marine?latitude='+l.lat+'&longitude='+l.lon+
-  '&hourly=wave_height,wave_period,wave_direction,sea_surface_temperature,sea_level_height_msl&daily=wave_height_max,wave_period_max&timezone=auto&past_days=1&forecast_days=8';
+  '&hourly=wave_height,wave_period,wave_direction,sea_surface_temperature,sea_level_height_msl&daily=wave_height_max,wave_period_max,wave_direction_dominant&timezone=auto&past_days=1&forecast_days=8';
   const [w,m]=await Promise.all([getJSON(u,15000),getJSON(mu,15000).catch(()=>null)]);
   w.marine=m&&m.hourly?m.hourly:null;w.marineDaily=m&&m.daily?m.daily:null;   // null = no marine data for this spot (e.g. inland)
   return w;
@@ -409,7 +414,7 @@ function demo(){ // synthetic data for layout checks (?demo)
   const cur=new Date().toISOString().slice(0,13);
   return {timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,
     current:{time:cur+':00',temperature_2m:17.6,apparent_temperature:16.2,relative_humidity_2m:62,dew_point_2m:10.1,is_day:1,precipitation:0,weather_code:2,pressure_msl:1013.6,wind_speed_10m:12.4,wind_direction_10m:240,wind_gusts_10m:18.7,visibility:1800},
-    marineDaily:{time:[0,1,2,3,4,5,6,7,8].map(k=>new Date(Date.UTC(y,now.getMonth(),d-1+k)).toISOString().slice(0,10)),wave_height_max:[.8,1.1,1.6,2.6,3.0,1.8,1.0,.9,1.2],wave_period_max:[5,5,6,8,9,7,5,5,6]},
+    marineDaily:{time:[0,1,2,3,4,5,6,7,8].map(k=>new Date(Date.UTC(y,now.getMonth(),d-1+k)).toISOString().slice(0,10)),wave_height_max:[.8,1.1,1.6,2.6,3.0,1.8,1.0,.9,1.2],wave_period_max:[5,5,6,8,9,7,5,5,6],wave_direction_dominant:[250,240,225,215,220,235,250,255,245]},
     marine:{time:hourly.time,wave_height:hourly.time.map((_,i)=>1.1+.7*Math.sin(i/10)),wave_period:hourly.time.map((_,i)=>5+Math.sin(i/12)*1.5),sea_level_height_msl:hourly.time.map((_,i)=>1.4*Math.sin(2*Math.PI*i/12.42)+.2*Math.sin(i/170)),wave_direction:hourly.time.map((_,i)=>235+i),sea_surface_temperature:hourly.time.map(()=>17.2)},
     hourly,daily:(()=>{const o={time:[],weather_code:[],sunrise:[],sunset:[],temperature_2m_max:[],temperature_2m_min:[],uv_index_max:[],precipitation_sum:[],precipitation_probability_max:[],wind_speed_10m_max:[],wind_gusts_10m_max:[],wind_direction_10m_dominant:[]};
       for(let k=0;k<9;k++){const ds=new Date(Date.UTC(y,now.getMonth(),d-1+k)).toISOString().slice(0,10);o.time.push(ds);o.weather_code.push([2,0,3,61,63,1,0,2,3][k]);o.sunrise.push(ds+'T07:12');o.sunset.push(ds+'T17:48');
@@ -499,7 +504,7 @@ function waveSvg(hm,wdir){            // sea-state pictogram: flatter/rippled ->
     foam+=`<circle cx="${(x-1.5).toFixed(1)}" cy="${(y-1.5).toFixed(1)}" r="1.5" fill="#fff"/><circle cx="${(x+1.8).toFixed(1)}" cy="${(y-.5).toFixed(1)}" r="1.2" fill="#fff"/>`;
     if(lvl>=6)foam+=`<circle cx="${(x+.5).toFixed(1)}" cy="${(y-5).toFixed(1)}" r="1" fill="#fff" opacity=".8"/><circle cx="${(x-3).toFixed(1)}" cy="${(y-4).toFixed(1)}" r=".9" fill="#fff" opacity=".7"/>`}
   const comp=wdir==null?'':`<circle cx="28" cy="11" r="12" fill="#131b29" stroke="#566478" stroke-width="1.4"/><line x1="28" y1="1" x2="28" y2="3.5" stroke="#8fa0b6" stroke-width="1.6"/><g transform="translate(28 11) scale(1.35) rotate(${wdir+180}) translate(-28 -11)"><polygon points="28,3.5 24,15 28,12.5 32,15" fill="#fff"/></g>`;
-  return `<div style="text-align:center"><svg width="${wdir==null?50:64}" height="${wdir==null?31:63}" viewBox="0 ${wdir==null?0:-21} 56 ${wdir==null?34:55}"><defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".5"/><stop offset="1" stop-color="${col}" stop-opacity=".05"/></linearGradient></defs><path d="${d}L56 34L0 34Z" fill="url(#wg)"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${foam}${comp?`<g transform="translate(0 -18)">${comp}</g>`:''}</svg><div class="wcap">${names[lvl]}</div></div>`}
+  return `<div style="text-align:center"><svg width="${wdir==null?50:52}" height="${wdir==null?31:51}" viewBox="0 ${wdir==null?0:-21} 56 ${wdir==null?34:55}"><defs><linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".5"/><stop offset="1" stop-color="${col}" stop-opacity=".05"/></linearGradient></defs><path d="${d}L56 34L0 34Z" fill="url(#wg)"/><path d="${d}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${foam}${comp?`<g transform="translate(0 -18)">${comp}</g>`:''}</svg><div class="wcap">${names[lvl]}</div></div>`}
 function dial(deg){ // arrow shows where the wind blows toward
   return `<svg class="dial" width="66" height="66" viewBox="0 0 76 76"><circle cx="38" cy="38" r="33" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="2"/>
   <g font-size="9" font-weight="700" fill="#8fa0b6" text-anchor="middle"><text x="38" y="12">N</text><text x="66" y="41">E</text><text x="38" y="70">S</text><text x="10" y="41">W</text></g>
@@ -553,7 +558,7 @@ function render(){
    `<button class="tile" id="twind"><div class="lab">Wind <span class="u">(${P.w})</span></div>${dial(c.wind_direction_10m)}<div class="val">${W(c.wind_speed_10m)}</div><div class="tsub">Gust ${W(c.wind_gusts_10m)} · ${card(c.wind_direction_10m)}</div></button>`+
    `<div class="tile"><div class="lab">Rain <span class="u">(mm)</span></div><div class="gfx" style="top:12px">${dropSvg(rp1,30,40)}</div><div class="val">${next24<0.05?'0':next24.toFixed(1)}<small>/ 24hr</small></div><div class="tsub">${rp1>=15?Math.round(rp1)+'% in 1 hr':Math.round(c.relative_humidity_2m)+'% humidity'}</div></div>`+
    `<button class="tile" id="tvis"><div class="lab">Visibility <span class="u">(${P.vu})</span></div><div class="gfx al">${visScaleSvg(vk)}</div><div class="val" style="color:${vk==null?'inherit':visCol(vk)}">${visTxt(vk)}</div><div class="tsub">${fogNow?'<span class="fogtag">FOG</span>':fogRisk?'<span style="color:#f6a23d">Fog risk · Δ'+(P.t==='F'?(spread*1.8):spread).toFixed(1)+'°</span>':vk==null?'No data':'<span style="color:'+visCol(vk)+'">'+visWord(vk)+'</span>'}</div></button>`+
-   `<button class="tile" id="twave"><div class="lab">Waves <span class="u">(${WVU})</span></div><div class="gfx al">${waveSvg(wh,wd)}</div><div class="val">${wh==null?'–':WV(wh)}</div><div class="tsub">${wh==null?'No marine data here':Math.round(wp)+'s · '+card(wd)+(st!=null?' · sea '+T(st)+'°':'')}</div></button>`+
+   `<button class="tile" id="twave"><div class="lab">Waves <span class="u">(${WVU})</span></div><div class="gfx al" style="top:27px">${waveSvg(wh,wd)}</div><div class="val">${wh==null?'–':WV(wh)}</div><div class="tsub">${wh==null?'No marine data here':Math.round(wp)+'s · '+card(wd)+(st!=null?' · sea '+T(st)+'°':'')}</div></button>`+
    tideTile+
    `<div class="tile"><div class="lab">Sun &amp; Moon</div><div class="gfx al">${moonSvg(mi.phase,lat<0,32)}</div>
      <div class="sm" style="margin-bottom:2px"><div>${sunI}<em>↑</em>${fmtMin(strMin(D.daily.sunrise[di]))}<em>↓</em>${fmtMin(strMin(D.daily.sunset[di]))}</div><div>${moonI}<em>↑</em>${fmtMin(tm(mt.rise))}<em>↓</em>${fmtMin(tm(mt.set))}</div></div>
@@ -571,11 +576,11 @@ function render(){
     const dd=D.daily,md=D.marineDaily,mi=md?Object.fromEntries(md.time.map((t,j)=>[t,j])):null;
     for(let k=0;k<7;k++){const i=di+k;if(i>=dd.time.length)break;const t=dd.time[i],j=mi?mi[t]:null;
       items.push({t,k,i,vis:dvis(t),visMax:dvmax(t),code:dd.weather_code[i],day:1,hi:dd.temperature_2m_max[i],lo:dd.temperature_2m_min[i],dir:dd.wind_direction_10m_dominant[i],
-        ws:dd.wind_speed_10m_max[i],wg:dd.wind_gusts_10m_max[i],wave:j==null?null:md.wave_height_max[j],wper:j==null?null:md.wave_period_max[j],pp:dd.precipitation_probability_max[i]||0,mm:dd.precipitation_sum[i]||0})}
+        ws:dd.wind_speed_10m_max[i],wg:dd.wind_gusts_10m_max[i],wave:j==null?null:md.wave_height_max[j],wper:j==null?null:md.wave_period_max[j],wdir:j==null||!md.wave_direction_dominant?null:md.wave_direction_dominant[j],pp:dd.precipitation_probability_max[i]||0,mm:dd.precipitation_sum[i]||0})}
   }else{
     for(let k=0;k<N;k++){const i=ci+k*P.step;if(i>=h.time.length)break;
       items.push({t:h.time[i],k,i,vis:hvis(i),code:h.weather_code[i],day:h.is_day[i],hi:h.temperature_2m[i],dir:h.wind_direction_10m[i],ws:h.wind_speed_10m[i],wg:h.wind_gusts_10m[i],
-        wave:mv('wave_height',i),wper:mv('wave_period',i),pp:h.precipitation_probability[i]||0,mm:h.precipitation[i]||0})}
+        wave:mv('wave_height',i),wper:mv('wave_period',i),wdir:mv('wave_direction',i),pp:h.precipitation_probability[i]||0,mm:h.precipitation[i]||0})}
   }
   const n=items.length,daily=P.step===0;
   $('grid').style.setProperty('--n',n);
@@ -606,7 +611,7 @@ function render(){
   if(daily)for(let k=-1;k<n;k++){const dstr=k<0?new Date(lm(items[0].t.slice(0,10)+'T00:00')-86400000).toISOString().slice(0,10):items[k].t;const i0=h.time.indexOf(dstr+'T18:00');if(i0<0)continue;let m=Infinity,cnt=0;
     for(let j=0;j<15;j++){const v=h.temperature_2m[i0+j];if(v!=null){cnt++;if(v<m)m=v}}if(cnt>=10&&m<Infinity)loPts.push({x:k+1,v:m})}
   const hiLine=daily?null:[{x:0,v:hv(h.temperature_2m,items[0].i-P.step/2)},...hiPts,{x:n,v:hv(h.temperature_2m,items[n-1].i+P.step/2)}];
-  const allT=hiPts.concat(loPts).map(p=>p.v),tmin=Math.min(...allT),tmax=Math.max(...allT),TH=72,top=daily?30:34,bot=daily?22:10;
+  const allT=hiPts.concat(loPts).map(p=>p.v),tmin=Math.min(...allT),tmax=Math.max(...allT),TH=66,top=daily?30:34,bot=daily?22:10;
   const ty=v=>tmax===tmin?TH/2+8:top+(1-(v-tmin)/(tmax-tmin))*(TH-top-bot);
   let tdots='';
   hiPts.forEach(q=>{const l=q.x/n*100,y=ty(q.v);tdots+=`<span class="dot" style="left:${l}%;top:${y}px"></span><span class="tl" style="left:${l}%;top:${y-9}px">${T(q.v)}°</span>`});
@@ -614,7 +619,7 @@ function render(){
   const chart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${n*100} ${TH}" preserveAspectRatio="none">${mkLine(daily?hiPts.concat(loPts).sort((p,q)=>p.x-q.x):hiLine,'#ffb347','tg',!daily,TH,ty)}</svg>${tdots}</div>`;
 
   // tide curve
-  const TT=64;let tideChart;
+  const TT=58;let tideChart;
   if(!TD)tideChart=`<div class="chart" style="grid-column:2 / span ${n}"><span class="tt" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--mut)">–</span></div>`;
   else{
     let paths='',labels='';const fmtE=e=>`${e.type==='H'?'▲':'▼'}${TU(e.v)} ${fmtMin(strMin(e.t))}`;
@@ -659,6 +664,26 @@ function render(){
   const wstopsA=spL.map(q=>`<stop offset="${(q.x/n).toFixed(3)}" stop-color="${wc(q.v)}" stop-opacity=".6"/>`).join('');
   const windArea=`<defs><linearGradient id="wgradf" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${n*100}" y2="0">${wstopsA}</linearGradient><linearGradient id="wfade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient><mask id="wmask" maskUnits="userSpaceOnUse" x="0" y="0" width="${n*100}" height="${WHt}"><rect x="0" y="0" width="${n*100}" height="${WHt}" fill="url(#wfade)"/></mask></defs><path d="${wpd}L${wxy[wxy.length-1][0].toFixed(1)} ${WHt}L${wxy[0][0].toFixed(1)} ${WHt}Z" fill="url(#wgradf)" mask="url(#wmask)"/>`;
   const windChart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${n*100} ${WHt}" preserveAspectRatio="none"><defs><linearGradient id="wgrad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${n*100}" y2="0">${wstops}</linearGradient></defs>${mkLine(gsL,'#cfe6fa','wgl',false,WHt,wy,'4 5',2)}${windArea}${mkLine(spL,'url(#wgrad)','wsl',false,WHt,wy,null,3)}</svg>${items.map((o,k)=>{const l=((k+.5)/n*100).toFixed(2);return `<svg class="wind-dir" style="left:${l}%;top:${wy(o.ws)}px" width="24" height="24" viewBox="-10 -10 20 20"><circle r="9.3" fill="#131b29" stroke="#566478" stroke-width="1.2"/><polygon points="0,7 -5.5,-7 0,-3 5.5,-7" fill="#c6d4e6" transform="rotate(${o.dir})"/></svg><span class="wg" style="left:${l}%;top:${Math.min(wy(o.wg)-7,wy(o.ws)-18)}px">${W(o.wg)}</span><span class="ws" style="left:${l}%;top:${wy(o.ws)+18}px">${W(o.ws)}</span>`}).join('')}</div>`;
+  // waves: smooth line coloured by sea state (same scale as the Waves icon), period above, direction arrow on the line, height below
+  const seaCol=v=>v>=4?'#f26b4f':v>=2.5?'#f6d04d':'#5cb8ff';
+  const mvf=(key,x)=>{const i0=Math.floor(x),f=x-i0,a=mv(key,i0),b=mv(key,i0+1);return a==null?b:(b==null||f===0)?a:a+(b-a)*f};
+  const TW=78,wPts=items.map((o,k)=>({x:k+.5,v:o.wave,o})).filter(q=>q.v!=null);
+  let waveChart;
+  if(wPts.length<2)waveChart=`<div class="chart" style="grid-column:2 / span ${n}"><span class="tt" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--mut)">–</span></div>`;
+  else{
+    const vmax=Math.max(1,...wPts.map(q=>q.v))*1.15,wvy=v=>26+(1-Math.min(v,vmax)/vmax)*(TW-56);
+    const first=wPts[0].v,last=wPts[wPts.length-1].v;
+    const eL=daily?first:(mvf('wave_height',items[0].i-P.step/2)??first),eR=daily?last:(mvf('wave_height',items[n-1].i+P.step/2)??last);
+    const wL=[{x:0,v:eL},...wPts,{x:n,v:eR}];
+    const stp=op=>wL.map(q=>`<stop offset="${(q.x/n).toFixed(3)}" stop-color="${seaCol(q.v)}"${op?` stop-opacity="${op}"`:''}/>`).join('');
+    const xy=wL.map(q=>[q.x*100,wvy(q.v)]),pd2=smoothD(xy);
+    const defs=`<defs><linearGradient id="vgrad" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${n*100}" y2="0">${stp()}</linearGradient><linearGradient id="vgradf" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${n*100}" y2="0">${stp('.6')}</linearGradient><linearGradient id="vfade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient><mask id="vmask" maskUnits="userSpaceOnUse" x="0" y="0" width="${n*100}" height="${TW}"><rect x="0" y="0" width="${n*100}" height="${TW}" fill="url(#vfade)"/></mask></defs>`;
+    const area=`<path d="${pd2}L${xy[xy.length-1][0].toFixed(1)} ${TW}L${xy[0][0].toFixed(1)} ${TW}Z" fill="url(#vgradf)" mask="url(#vmask)"/>`;
+    const marks=wPts.map(q=>{const l=(q.x/n*100).toFixed(2),y=wvy(q.v),o=q.o;
+      const arrow=o.wdir==null?`<span class="dot" style="left:${l}%;top:${y}px;border-color:${seaCol(q.v)}"></span>`:`<svg class="wind-dir" style="left:${l}%;top:${y}px" width="24" height="24" viewBox="-10 -10 20 20"><circle r="9.3" fill="#131b29" stroke="#566478" stroke-width="1.2"/><polygon points="0,7 -5.5,-7 0,-3 5.5,-7" fill="#9fd4ff" transform="rotate(${o.wdir})"/></svg>`;
+      return `${arrow}${o.wper!=null?`<span class="wg" style="left:${l}%;top:${y-15}px">${Math.round(o.wper)}s</span>`:''}<span class="ws" style="left:${l}%;top:${y+16}px;color:${q.v>=2.5?seaCol(q.v):'#fff'}">${WV(q.v)}</span>`}).join('');
+    waveChart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${n*100} ${TW}" preserveAspectRatio="none">${defs}${area}${mkLine(wL,'url(#vgrad)','vsl',false,TW,wvy,null,3)}</svg>${marks}</div>`;
+  }
   const visCell=o=>{const k=o.vis;if(k==null)return '<span class="vv" style="color:var(--mut)">–</span>';
     const tag=isFog(o.code,k)?'<small class="fogtag">FOG</small>':'';
     if(daily&&o.visMax!=null&&visTxt(o.visMax)!==visTxt(k))return `${tag}<span class="vv"><span style="color:${visCol(k)}">${visTxt(k)}</span><span class="vd">–</span><span style="color:${visCol(o.visMax)}">${visTxt(o.visMax)}</span></span>`;
@@ -675,7 +700,7 @@ function render(){
    row('vis','Visibility',cells(visCell))+
    row('tp','Temp',chart)+
    row('tp wl','Wind',windChart)+
-   row('wv','Waves',cells(o=>o.wave==null?'<span style="color:var(--mut)">–</span>':`<span style="color:${o.wave>=2.5?'#f26b4f':o.wave>=1.5?'#f6d04d':'#cfe6fa'}">${WV(o.wave)}</span><small>${Math.round(o.wper)}s</small>`))+
+   row('tp wvl','Waves',waveChart)+
    row('tp td2','Tides',tideChart);
   $('stepb').onclick=()=>{P.step=P.step===1?3:P.step===3?6:P.step===6?0:1;savePrefs();render()};
 }
