@@ -193,7 +193,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .row.rn{height:26px}
 .row.rn>div{justify-content:center}
 .row.ic>div{flex-direction:row;gap:5px}
-.rp{font-size:12px;font-weight:500}
+.rp{font-size:13.5px;font-weight:500}
 .gfx.al{top:30px;right:14px;width:84px;display:flex;justify-content:center}
 .row.wl{height:58px}
 .tp{height:80px}
@@ -247,7 +247,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .ic{height:34px}
 .row.vis{height:34px}
 .row.wvl{height:78px}
-.ws small{font-size:12px;font-weight:500;color:var(--mut);margin-left:3px}
+.ws small{font-size:13.5px;font-weight:500;color:var(--mut);margin-left:3px}
+.hd{height:30px}.ic{height:32px}.row.vis{height:32px}.tp{height:66px}.row.wl{height:126px}.row.wvl{height:70px}.row.tcur{height:82px}
+.row>b.dual{position:relative;align-self:stretch}
+.row>b.dual span{position:absolute;left:0;transform:translateY(-50%);white-space:nowrap}
+.cur{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;gap:4px;white-space:nowrap}
+.cur span{font-size:17px;font-weight:700;color:#bfe3ff}
 </style>
 </head>
 <body>
@@ -284,7 +289,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
     <div class="lab favh">Favorites</div>
     <div class="favlist" id="favlist"></div>
     <button class="fs" id="fs">⛶ Full screen</button>
-    <div class="favcr">Map © OpenStreetMap contributors<br>Weather &amp; marine: Open-Meteo · Tides: NOAA</div>
+    <div class="favcr">Map © OpenStreetMap contributors<br>Weather &amp; marine: Open-Meteo<br>Tides &amp; currents: NOAA</div>
   </aside>
   <div class="mapov" id="mapov">
     <div class="mbar">
@@ -399,9 +404,9 @@ async function fetchWx(l){
   '&daily=weather_code,sunrise,sunset,temperature_2m_max,temperature_2m_min,uv_index_max,precipitation_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant'+
   '&wind_speed_unit=kn&timezone=auto&past_days=1&forecast_days=8';
   const mu='https://marine-api.open-meteo.com/v1/marine?latitude='+l.lat+'&longitude='+l.lon+
-  '&hourly=wave_height,wave_period,wave_direction,sea_surface_temperature,sea_level_height_msl&daily=wave_height_max,wave_period_max,wave_direction_dominant&timezone=auto&past_days=1&forecast_days=8';
+  '&hourly=wave_height,wave_period,wave_direction,sea_surface_temperature,sea_level_height_msl,ocean_current_velocity,ocean_current_direction&daily=wave_height_max,wave_period_max,wave_direction_dominant&timezone=auto&past_days=1&forecast_days=8';
   const [w,m]=await Promise.all([getJSON(u,15000),getJSON(mu,15000).catch(()=>null)]);
-  w.marine=m&&m.hourly?m.hourly:null;w.marineDaily=m&&m.daily?m.daily:null;   // null = no marine data for this spot (e.g. inland)
+  w.marine=m&&m.hourly?m.hourly:null;w.marineDaily=m&&m.daily?m.daily:null;w.marineUnits=m&&m.hourly_units?m.hourly_units:null;   // null = no marine data for this spot (e.g. inland)
   return w;
 }
 function demo(){ // synthetic data for layout checks (?demo)
@@ -416,7 +421,8 @@ function demo(){ // synthetic data for layout checks (?demo)
   return {timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,
     current:{time:cur+':00',temperature_2m:17.6,apparent_temperature:16.2,relative_humidity_2m:62,dew_point_2m:10.1,is_day:1,precipitation:0,weather_code:2,pressure_msl:1013.6,wind_speed_10m:12.4,wind_direction_10m:240,wind_gusts_10m:18.7,visibility:1800},
     marineDaily:{time:[0,1,2,3,4,5,6,7,8].map(k=>new Date(Date.UTC(y,now.getMonth(),d-1+k)).toISOString().slice(0,10)),wave_height_max:[.8,1.1,1.6,2.6,3.0,1.8,1.0,.9,1.2],wave_period_max:[5,5,6,8,9,7,5,5,6],wave_direction_dominant:[250,240,225,215,220,235,250,255,245]},
-    marine:{time:hourly.time,wave_height:hourly.time.map((_,i)=>1.1+.7*Math.sin(i/10)),wave_period:hourly.time.map((_,i)=>5+Math.sin(i/12)*1.5),sea_level_height_msl:hourly.time.map((_,i)=>1.4*Math.sin(2*Math.PI*i/12.42)+.2*Math.sin(i/170)),wave_direction:hourly.time.map((_,i)=>235+i),sea_surface_temperature:hourly.time.map(()=>17.2)},
+    marineUnits:{ocean_current_velocity:'km/h'},
+    marine:{time:hourly.time,ocean_current_velocity:hourly.time.map((_,i)=>.3+2.4*Math.abs(Math.sin(2*Math.PI*i/12.42))),ocean_current_direction:hourly.time.map((_,i)=>Math.sin(2*Math.PI*i/12.42)>0?40:220),wave_height:hourly.time.map((_,i)=>1.1+.7*Math.sin(i/10)),wave_period:hourly.time.map((_,i)=>5+Math.sin(i/12)*1.5),sea_level_height_msl:hourly.time.map((_,i)=>1.4*Math.sin(2*Math.PI*i/12.42)+.2*Math.sin(i/170)),wave_direction:hourly.time.map((_,i)=>235+i),sea_surface_temperature:hourly.time.map(()=>17.2)},
     hourly,daily:(()=>{const o={time:[],weather_code:[],sunrise:[],sunset:[],temperature_2m_max:[],temperature_2m_min:[],uv_index_max:[],precipitation_sum:[],precipitation_probability_max:[],wind_speed_10m_max:[],wind_gusts_10m_max:[],wind_direction_10m_dominant:[]};
       for(let k=0;k<9;k++){const ds=new Date(Date.UTC(y,now.getMonth(),d-1+k)).toISOString().slice(0,10);o.time.push(ds);o.weather_code.push([2,0,3,61,63,1,0,2,3][k]);o.sunrise.push(ds+'T07:12');o.sunset.push(ds+'T17:48');
         o.temperature_2m_max.push(19+Math.sin(k)*3);o.temperature_2m_min.push(11+Math.sin(k)*2);o.uv_index_max.push(3.5);o.precipitation_sum.push([0,0,.4,6.2,9.1,.8,0,0,.3][k]);o.precipitation_probability_max.push([5,10,35,80,90,40,5,10,30][k]);
@@ -559,7 +565,7 @@ function render(){
    `<button class="tile" id="twind"><div class="lab">Wind <span class="u">(${P.w})</span></div>${dial(c.wind_direction_10m)}<div class="val">${W(c.wind_speed_10m)}</div><div class="tsub">Gust ${W(c.wind_gusts_10m)} · ${card(c.wind_direction_10m)}</div></button>`+
    `<div class="tile"><div class="lab">Rain <span class="u">(mm)</span></div><div class="gfx" style="top:12px">${dropSvg(rp1,30,40)}</div><div class="val">${next24<0.05?'0':next24.toFixed(1)}<small>/ 24hr</small></div><div class="tsub">${rp1>=15?Math.round(rp1)+'% in 1 hr':Math.round(c.relative_humidity_2m)+'% humidity'}</div></div>`+
    `<button class="tile" id="tvis"><div class="lab">Visibility <span class="u">(${P.vu})</span></div><div class="gfx al">${visScaleSvg(vk)}</div><div class="val" style="color:${vk==null?'inherit':visCol(vk)}">${visTxt(vk)}</div><div class="tsub">${fogNow?'<span class="fogtag">FOG</span>':fogRisk?'<span style="color:#f6a23d">Fog risk · Δ'+(P.t==='F'?(spread*1.8):spread).toFixed(1)+'°</span>':vk==null?'No data':'<span style="color:'+visCol(vk)+'">'+visWord(vk)+'</span>'}</div></button>`+
-   `<button class="tile" id="twave"><div class="lab">Waves <span class="u">(${WVU})</span></div><div class="gfx al" style="top:14px">${waveSvg(wh,wd)}</div><div class="val">${wh==null?'–':WV(wh)}</div><div class="tsub">${wh==null?'No marine data here':Math.round(wp)+'s · '+card(wd)+(st!=null?' · sea '+T(st)+'°':'')}</div></button>`+
+   `<button class="tile" id="twave"><div class="lab">Waves <span class="u">(${WVU})</span></div><div class="gfx al" style="top:14px;right:12px;width:66px">${waveSvg(wh,wd)}</div><div class="val">${wh==null?'–':WV(wh)}</div><div class="tsub">${wh==null?'No marine data here':Math.round(wp)+'s · '+card(wd)+(st!=null?' · sea '+T(st)+'°':'')}</div></button>`+
    tideTile+
    `<div class="tile"><div class="lab">Sun &amp; Moon</div><div class="gfx al">${moonSvg(mi.phase,lat<0,32)}</div>
      <div class="sm" style="margin-bottom:2px"><div>${sunI}<em>↑</em>${fmtMin(strMin(D.daily.sunrise[di]))}<em>↓</em>${fmtMin(strMin(D.daily.sunset[di]))}</div><div>${moonI}<em>↑</em>${fmtMin(tm(mt.rise))}<em>↓</em>${fmtMin(tm(mt.set))}</div></div>
@@ -620,10 +626,10 @@ function render(){
   const chart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${n*100} ${TH}" preserveAspectRatio="none">${mkLine(daily?hiPts.concat(loPts).sort((p,q)=>p.x-q.x):hiLine,'#ffb347','tg',!daily,TH,ty)}</svg>${tdots}</div>`;
 
   // tide curve
-  const TT=58;let tideChart;
-  if(!TD)tideChart=`<div class="chart" style="grid-column:2 / span ${n}"><span class="tt" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--mut)">–</span></div>`;
+  const TT=52,CR=30;let tideChart;
+  let paths='',labels='';const fmtE=e=>`${e.type==='H'?'▲':'▼'}${TU(e.v)} ${fmtMin(strMin(e.t))}`;
+  if(!TD)labels=`<span class="tt" style="position:absolute;left:50%;top:${TT/2}px;transform:translate(-50%,-50%);color:var(--mut)">–</span>`;
   else{
-    let paths='',labels='';const fmtE=e=>`${e.type==='H'?'▲':'▼'}${TU(e.v)} ${fmtMin(strMin(e.t))}`;
     if(daily){
       const hiT=[],loT=[];
       items.forEach((o,k)=>{const day=o.t.slice(0,10),ex=TD.ext.filter(e=>e.t.slice(0,10)===day);
@@ -633,7 +639,7 @@ function render(){
         const lo=TD.ext.filter(e=>e.type==='L'&&e.ms>=w0&&e.ms<w1).sort((a,b)=>a.v-b.v)[0];if(lo)loT.push({x:k+1,v:lo.v,e:lo})});
       const vs=hiT.concat(loT).map(p=>p.v);
       if(vs.length){const mn=Math.min(...vs),sp=Math.max(Math.max(...vs)-mn,.3),yf=v=>22+(1-(v-mn)/sp)*(TT-44);
-        paths=mkLine(hiT.concat(loT).sort((p,q)=>p.x-q.x),'#5cb8ff','tdh',false,TT,yf);
+        paths=mkLine(hiT.concat(loT).sort((p,q)=>p.x-q.x),'#5cb8ff','tdh',true,TT+CR,yf);
         hiT.forEach(q=>{const l=q.x/n*100,y=yf(q.v);labels+=`<span class="dot" style="left:${l}%;top:${y}px;border-color:#5cb8ff"></span><span class="tl tt" style="left:${l}%;top:${y-8}px;color:#bfe3ff">${fmtE(q.e)}</span>`});
         loT.forEach(q=>{const l=q.x/n*100,y=yf(q.v);labels+=`<span class="dot" style="left:${l}%;top:${y}px;border-color:#ffb347"></span><span class="tl tt" style="left:${l}%;top:${y+8}px;transform:translate(${q.x>=n?'-92%':q.x<=0?'-8%':'-50%'},0);color:#ffd6a0">${fmtE(q.e)}</span>`})}
     }else{
@@ -642,15 +648,29 @@ function render(){
       const cols=[];items.forEach((o,k)=>{const ms=lm(o.t),v=tideH(ms);if(v!=null)cols.push({x:k+.5,v,e:TD.ext.find(e=>Math.abs(e.ms-ms)<=sm/2)||null})});
       const vs=curve.map(p=>p.v);
       if(vs.length>3){const mn=Math.min(...vs),sp=Math.max(Math.max(...vs)-mn,.3),yf=v=>22+(1-(v-mn)/sp)*(TT-30);
-        paths=mkLine(curve,'#5cb8ff','tdc',true,TT,yf);
+        paths=mkLine(curve,'#5cb8ff','tdc',true,TT+CR,yf);
         cols.forEach(q=>{const l=q.x/n*100,y=yf(q.v),col=q.e?(q.e.type==='H'?'#5cb8ff':'#ffb347'):'#5cb8ff';
           labels+=`<span class="dot" style="left:${l}%;top:${y}px;border-color:${col}"></span><span class="tl tt" style="left:${l}%;top:${y-8}px;${q.e?`color:${q.e.type==='H'?'#bfe3ff':'#ffd6a0'}`:''}">${q.e?fmtE(q.e):TU(q.v)}</span>`})}
     }
-    tideChart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${n*100} ${TT}" preserveAspectRatio="none">${paths}</svg>${labels}</div>`;
   }
 
+  // current (speed + direction), drawn in the blue area below the tide curve
+  const CW=k=>(k*KN[P.w]).toFixed(1);
+  const curNow=(ms,i)=>{if(!CUR)return null;
+    if(CUR.src==='NOAA'){const e=CUR.ev;if(e.length<2||ms<e[0].ms||ms>e[e.length-1].ms)return null;let q=0;while(q<e.length-2&&e[q+1].ms<=ms)q++;
+      const a=e[q],b=e[q+1],f=(ms-a.ms)/(b.ms-a.ms),sv=a.v+(b.v-a.v)*(1-Math.cos(Math.PI*f))/2;return{v:Math.abs(sv),dir:sv>=0?CUR.fdir:CUR.edir}}
+    const v=mv('ocean_current_velocity',i);return v==null?null:{v:v*CUR.fac,dir:mv('ocean_current_direction',i)}};
+  const curDay=o=>{if(!CUR)return null;const day=o.t.slice(0,10);
+    if(CUR.src==='NOAA'){const ex=CUR.ev.filter(e=>e.t.slice(0,10)===day&&e.v!==0).sort((a,b)=>Math.abs(b.v)-Math.abs(a.v));return ex.length?{v:Math.abs(ex[0].v),dir:ex[0].v>0?CUR.fdir:CUR.edir}:null}
+    let best=null;for(let j=0;j<h.time.length;j++){if(!h.time[j].startsWith(day))continue;const v=mv('ocean_current_velocity',j);if(v!=null&&(!best||v>best.v))best={v:v*CUR.fac,dir:mv('ocean_current_direction',j)}}
+    return best&&{v:best.v,dir:best.dir}};
+  const curArrow=dir=>dir==null?'':`<svg width="22" height="22" viewBox="-10 -10 20 20"><circle r="9.3" fill="#10243a" stroke="#2f6aa3" stroke-width="1.2"/><polygon points="0,7 -5.5,-7 0,-3 5.5,-7" fill="#7fc4ff" transform="rotate(${dir+180})"/></svg>`;
+  const curMarks=items.map((o,k)=>{const c=daily?curDay(o):curNow(lm(o.t),o.i);if(!c)return '';
+    return `<div class="cur" style="left:${((k+.5)/n*100).toFixed(2)}%;top:${TT+CR/2+2}px">${curArrow(c.dir)}<span>${CW(c.v)}</span></div>`}).join('');
+  tideChart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${n*100} ${TT+CR}" preserveAspectRatio="none">${paths}</svg>${labels}${curMarks}</div>`;
+
   // wind: speed line (coloured by strength) with a dashed gust line above it
-  const WHt=136,wmax=Math.max(10,...items.map(o=>o.wg))*1.05,wy=v=>32+(1-Math.min(v,wmax)/wmax)*(WHt-72);
+  const WHt=126,wmax=Math.max(10,...items.map(o=>o.wg))*1.05,wy=v=>32+(1-Math.min(v,wmax)/wmax)*(WHt-72);
   const spPts=items.map((o,k)=>({x:k+.5,v:o.ws})),gsPts=items.map((o,k)=>({x:k+.5,v:o.wg}));
   let spL=spPts,gsL=gsPts;
   {const i0=items[0].i,i1=items[n-1].i;
@@ -670,11 +690,11 @@ function render(){
   const mvf=(key,x)=>{const i0=Math.floor(x),f=x-i0,a=mv(key,i0),b=mv(key,i0+1);return a==null?b:(b==null||f===0)?a:a+(b-a)*f};
   const KA=[[0,0],[.1,.9],[.5,2],[1.25,3.6],[2.5,5.6],[4,8],[6,10.5],[9,12.5]],KL=[[0,30],[.1,28],[.5,26],[1.25,24],[2.5,22],[4,20],[6,18],[9,17]];
   const kint=(K,v)=>{if(v<=K[0][0])return K[0][1];for(let i=1;i<K.length;i++){if(v<=K[i][0]){const f=(v-K[i-1][0])/(K[i][0]-K[i-1][0]);return K[i-1][1]+(K[i][1]-K[i-1][1])*f}}return K[K.length-1][1]};
-  const TW=78,W0=882,AMAX=8,wPts=items.map((o,k)=>({x:k+.5,v:o.wave,o})).filter(q=>q.v!=null);
+  const TW=70,W0=882,AMAX=8,wPts=items.map((o,k)=>({x:k+.5,v:o.wave,o})).filter(q=>q.v!=null);
   let waveChart;
   if(wPts.length<2)waveChart=`<div class="chart" style="grid-column:2 / span ${n}"><span class="tt" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--mut)">–</span></div>`;
   else{
-    const vmax=Math.max(1,...wPts.map(q=>q.v))*1.15,wvy=v=>18+(1-Math.min(v,vmax)/vmax)*22;
+    const vmax=Math.max(1,...wPts.map(q=>q.v))*1.15,wvy=v=>18+(1-Math.min(v,vmax)/vmax)*(TW-56);
     const first=wPts[0].v,last=wPts[wPts.length-1].v;
     const eL=daily?first:(mvf('wave_height',items[0].i-P.step/2)??first),eR=daily?last:(mvf('wave_height',items[n-1].i+P.step/2)??last);
     const wL=[{x:0,v:eL},...wPts,{x:n,v:eR}];
@@ -716,7 +736,7 @@ function render(){
    row('tp','Temp',chart)+
    row('tp wl','Wind',windChart)+
    row('tp wvl','Waves',waveChart)+
-   row('tp td2','Tides',tideChart);
+   `<div class="row tp td2 tcur"><b class="dual"><span style="top:${TT/2}px">Tides</span><span style="top:${TT+CR/2+2}px">Current</span></b>${tideChart}</div>`;
   $('stepb').onclick=()=>{P.step=P.step===1?3:P.step===3?6:P.step===6?0:1;savePrefs();render()};
 }
 function clock(){
@@ -770,6 +790,42 @@ async function loadTide(){
   if(!td&&D)td=modelTide();
   if(tk!==TDK)return;
   TD=td;TDL=false;render();
+}
+
+/* ---------- currents: NOAA tidal-current predictions (US) with Open-Meteo model as fallback ---------- */
+let CUR=null,CURK='';
+async function noaaCurrent(loc,w){
+  const key=fkey(loc.lat,loc.lon);let cache={};try{cache=JSON.parse(localStorage.getItem('wx-cstn')||'{}')}catch(e){}
+  let st=cache[key];
+  if(!st){
+    const j=await getJSON('https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations.json?type=currentpredictions&units=english',25000);
+    let best=null;for(const x of j.stations||[]){const d=hav(loc.lat,loc.lon,x.lat,x.lng);if(!best||d<best.d)best={d,id:x.id,name:x.name,bin:x.currbin}}
+    st=best&&best.d<=20?{id:best.id,name:best.name,bin:best.bin,d:Math.round(best.d)}:{none:1};
+    cache[key]=st;try{localStorage.setItem('wx-cstn',JSON.stringify(cache))}catch(e){}
+  }
+  if(st.none)return null;
+  const ds=w.current.time.slice(0,10),d0=Date.UTC(+ds.slice(0,4),+ds.slice(5,7)-1,+ds.slice(8,10));
+  const f=o=>new Date(d0+o*86400000).toISOString().slice(0,10).replace(/-/g,'');
+  const j=await getJSON('https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=currents_predictions&interval=MAX_SLACK&station='+st.id+(st.bin!=null?'&bin='+st.bin:'')+'&units=english&time_zone=lst_ldt&format=json&begin_date='+f(-1)+'&end_date='+f(8),15000);
+  const cp=j.current_predictions&&(j.current_predictions.cp||j.current_predictions);
+  if(!Array.isArray(cp)||cp.length<3)return null;
+  let fdir=null,edir=null;
+  const ev=cp.map(p=>{const t=String(p.Time||p.t).replace(' ','T'),type=String(p.Type||p.type||'').toLowerCase(),vel=Math.abs(+(p.Velocity_Major??p.v)||0);
+    if(type==='flood'&&p.meanFloodDir!=null)fdir=+p.meanFloodDir;if(type==='ebb'&&p.meanEbbDir!=null)edir=+p.meanEbbDir;
+    return{t,ms:lm(t),v:type==='ebb'?-vel:type==='flood'?vel:0}});
+  return{src:'NOAA',name:st.name,d:st.d,ev,fdir,edir};
+}
+function modelCurrent(){
+  const m=D&&D.marine;if(!m||!m.ocean_current_velocity||m.ocean_current_velocity.every(x=>x==null))return null;
+  const u=String((D.marineUnits&&D.marineUnits.ocean_current_velocity)||'km/h');
+  return{src:'model',fac:/m\/s|ms/i.test(u)?1.94384:/kn|kt/i.test(u)?1:/mp/i.test(u)?0.868976:0.539957};
+}
+async function loadCurrent(){
+  const ck=CURK;let c=null;
+  if(!qs.has('demo')){try{c=await noaaCurrent(LOC,D)}catch(e){}}
+  if(!c&&D)c=modelCurrent();
+  if(ck!==CURK)return;
+  CUR=c;render();
 }
 
 /* ---------- favorites ---------- */
@@ -902,7 +958,8 @@ async function load(force){
     $('msg').classList.remove('on');
     UPDT=new Date();
     const tkey=fkey(LOC.lat,LOC.lon);if(tkey!==TDK){TD=null;TDK=tkey}
-    render();loadFavWx();loadTide();
+    if(tkey!==CURK){CUR=null;CURK=tkey}
+    render();loadFavWx();loadTide();loadCurrent();
   }catch(e){
     if(D){$('upd').textContent='Update failed — showing last data';return}
     show(`Weather unavailable<p>${e&&e.message&&e.message.length<80?e.message:'Check the network connection.'} If location is blocked, open this page with <b>?lat=55.68&amp;lon=12.57&amp;name=Copenhagen</b> added to the address.</p><button id="retry">Try again</button>`);
