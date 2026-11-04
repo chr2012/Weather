@@ -253,6 +253,16 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .row>b.dual span{position:absolute;left:0;transform:translateY(-50%);white-space:nowrap}
 .cur{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;gap:4px;white-space:nowrap}
 .cur span{font-size:17px;font-weight:700;color:#bfe3ff}
+.tp{height:62px}.row.wl{height:122px}.row.wvl{height:62px}.row.tcur{height:98px}
+.tl2{position:absolute;white-space:nowrap;font-size:11.5px;font-weight:700}
+.dtl{position:absolute;white-space:nowrap;font-size:10px;font-weight:700;letter-spacing:-.1px;transform:translateX(-50%)}
+.cm{position:absolute;display:flex;align-items:center;gap:3px;white-space:nowrap;transform:translate(-10px,-50%)}
+.cm.rev{flex-direction:row-reverse;transform:translate(calc(-100% + 10px),-50%)}
+.cm span{font-size:13px;font-weight:700;background:rgba(15,25,40,.6);padding:0 2px;border-radius:4px}
+.sl{position:absolute;transform:translate(-50%,-50%);font-size:10.5px;color:#9fb3c8;background:rgba(19,27,41,.88);padding:0 3px;border-radius:4px;white-space:nowrap}
+.wvt{position:absolute;transform:translate(-50%,-50%);font-size:12px;color:#ffb347}
+.dot.now{border-color:#fff;background:#5cb8ff}
+.dual small{display:block;font-size:10.5px;color:var(--mut);text-transform:none;letter-spacing:0;font-weight:500;line-height:1.25}
 </style>
 </head>
 <body>
@@ -618,7 +628,7 @@ function render(){
   if(daily)for(let k=-1;k<n;k++){const dstr=k<0?new Date(lm(items[0].t.slice(0,10)+'T00:00')-86400000).toISOString().slice(0,10):items[k].t;const i0=h.time.indexOf(dstr+'T18:00');if(i0<0)continue;let m=Infinity,cnt=0;
     for(let j=0;j<15;j++){const v=h.temperature_2m[i0+j];if(v!=null){cnt++;if(v<m)m=v}}if(cnt>=10&&m<Infinity)loPts.push({x:k+1,v:m})}
   const hiLine=daily?null:[{x:0,v:hv(h.temperature_2m,items[0].i-P.step/2)},...hiPts,{x:n,v:hv(h.temperature_2m,items[n-1].i+P.step/2)}];
-  const allT=hiPts.concat(loPts).map(p=>p.v),tmin=Math.min(...allT),tmax=Math.max(...allT),TH=66,top=daily?30:34,bot=daily?22:10;
+  const allT=hiPts.concat(loPts).map(p=>p.v),tmin=Math.min(...allT),tmax=Math.max(...allT),TH=62,top=daily?28:34,bot=daily?20:10;
   const ty=v=>tmax===tmin?TH/2+8:top+(1-(v-tmin)/(tmax-tmin))*(TH-top-bot);
   let tdots='';
   hiPts.forEach(q=>{const l=q.x/n*100,y=ty(q.v);tdots+=`<span class="dot" style="left:${l}%;top:${y}px"></span><span class="tl" style="left:${l}%;top:${y-9}px">${T(q.v)}°</span>`});
@@ -626,51 +636,81 @@ function render(){
   const chart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${n*100} ${TH}" preserveAspectRatio="none">${mkLine(daily?hiPts.concat(loPts).sort((p,q)=>p.x-q.x):hiLine,'#ffb347','tg',!daily,TH,ty)}</svg>${tdots}</div>`;
 
   // tide curve
-  const TT=52,CR=30;let tideChart;
-  let paths='',labels='';const fmtE=e=>`${e.type==='H'?'▲':'▼'}${TU(e.v)} ${fmtMin(strMin(e.t))}`;
-  if(!TD)labels=`<span class="tt" style="position:absolute;left:50%;top:${TT/2}px;transform:translate(-50%,-50%);color:var(--mut)">–</span>`;
-  else{
-    if(daily){
-      const hiT=[],loT=[];
-      items.forEach((o,k)=>{const day=o.t.slice(0,10),ex=TD.ext.filter(e=>e.t.slice(0,10)===day);
-        const hi=ex.filter(e=>e.type==='H').sort((a,b)=>b.v-a.v)[0];if(hi)hiT.push({x:k+.5,v:hi.v,e:hi})});
-      const eFirst=TD.ext[0].ms,eLast=TD.ext[TD.ext.length-1].ms;
-      [{o:items[0],k:-1},...items.map((o,k)=>({o,k}))].forEach(({o,k})=>{const w0=lm(o.t.slice(0,10)+'T12:00')+(k<0?-86400000:0),w1=w0+86400000;if(eFirst>w0||eLast<w1)return;
-        const lo=TD.ext.filter(e=>e.type==='L'&&e.ms>=w0&&e.ms<w1).sort((a,b)=>a.v-b.v)[0];if(lo)loT.push({x:k+1,v:lo.v,e:lo})});
-      const vs=hiT.concat(loT).map(p=>p.v);
-      if(vs.length){const mn=Math.min(...vs),sp=Math.max(Math.max(...vs)-mn,.3),yf=v=>22+(1-(v-mn)/sp)*(TT-44);
-        paths=mkLine(hiT.concat(loT).sort((p,q)=>p.x-q.x),'#5cb8ff','tdh',true,TT+CR,yf);
-        hiT.forEach(q=>{const l=q.x/n*100,y=yf(q.v);labels+=`<span class="dot" style="left:${l}%;top:${y}px;border-color:#5cb8ff"></span><span class="tl tt" style="left:${l}%;top:${y-8}px;color:#bfe3ff">${fmtE(q.e)}</span>`});
-        loT.forEach(q=>{const l=q.x/n*100,y=yf(q.v);labels+=`<span class="dot" style="left:${l}%;top:${y}px;border-color:#ffb347"></span><span class="tl tt" style="left:${l}%;top:${y+8}px;transform:translate(${q.x>=n?'-92%':q.x<=0?'-8%':'-50%'},0);color:#ffd6a0">${fmtE(q.e)}</span>`})}
-    }else{
-      const ms0=lm(items[0].t),sm=P.step*3600000,curve=[];
-      for(let u=0;u<=n;u+=.25){const v=tideH(ms0+(u-.5)*sm);if(v!=null)curve.push({x:u,v})}
-      const cols=[];items.forEach((o,k)=>{const ms=lm(o.t),v=tideH(ms);if(v!=null)cols.push({x:k+.5,v,e:TD.ext.find(e=>Math.abs(e.ms-ms)<=sm/2)||null})});
-      const vs=curve.map(p=>p.v);
-      if(vs.length>3){const mn=Math.min(...vs),sp=Math.max(Math.max(...vs)-mn,.3),yf=v=>22+(1-(v-mn)/sp)*(TT-30);
-        paths=mkLine(curve,'#5cb8ff','tdc',true,TT+CR,yf);
-        cols.forEach(q=>{const l=q.x/n*100,y=yf(q.v),col=q.e?(q.e.type==='H'?'#5cb8ff':'#ffb347'):'#5cb8ff';
-          labels+=`<span class="dot" style="left:${l}%;top:${y}px;border-color:${col}"></span><span class="tl tt" style="left:${l}%;top:${y-8}px;${q.e?`color:${q.e.type==='H'?'#bfe3ff':'#ffd6a0'}`:''}">${q.e?fmtE(q.e):TU(q.v)}</span>`})}
-    }
-  }
-
-  // current (speed + direction), drawn in the blue area below the tide curve
-  const CW=k=>(k*KN[P.w]).toFixed(1);
-  const curNow=(ms,i)=>{if(!CUR)return null;
+  // ===== tides + current: one graph on a true time axis (events sit where they really happen) =====
+  const TB=54,CB=44,TC=TB+CB,ZY=TB+CB/2,nowT=lm(c.time),WD=n*100;
+  const ms0=daily?lm(items[0].t.slice(0,10)+'T00:00'):lm(items[0].t);
+  const spanMs=daily?86400000:P.step*3600000,tStart=daily?ms0:ms0-0.5*spanMs,tEnd=tStart+n*spanMs;
+  const xOf=ms=>(ms-tStart)/spanMs,inR=ms=>ms>=tStart&&ms<=tEnd,sampMs=(daily||P.step>=6)?1800000:900000;
+  const CW=k=>(k*KN[P.w]).toFixed(1),hOff=lm(h.time[0]);
+  const curSgn=ms=>{if(!CUR)return null;
     if(CUR.src==='NOAA'){const e=CUR.ev;if(e.length<2||ms<e[0].ms||ms>e[e.length-1].ms)return null;let q=0;while(q<e.length-2&&e[q+1].ms<=ms)q++;
-      const a=e[q],b=e[q+1],f=(ms-a.ms)/(b.ms-a.ms),sv=a.v+(b.v-a.v)*(1-Math.cos(Math.PI*f))/2;return{v:Math.abs(sv),dir:sv>=0?CUR.fdir:CUR.edir}}
-    const v=mv('ocean_current_velocity',i);return v==null?null:{v:v*CUR.fac,dir:mv('ocean_current_direction',i)}};
-  const curDay=o=>{if(!CUR)return null;const day=o.t.slice(0,10);
-    if(CUR.src==='NOAA'){const ex=CUR.ev.filter(e=>e.t.slice(0,10)===day&&e.v!==0).sort((a,b)=>Math.abs(b.v)-Math.abs(a.v));return ex.length?{v:Math.abs(ex[0].v),dir:ex[0].v>0?CUR.fdir:CUR.edir}:null}
-    let best=null;for(let j=0;j<h.time.length;j++){if(!h.time[j].startsWith(day))continue;const v=mv('ocean_current_velocity',j);if(v!=null&&(!best||v>best.v))best={v:v*CUR.fac,dir:mv('ocean_current_direction',j)}}
-    return best&&{v:best.v,dir:best.dir}};
-  const curArrow=dir=>dir==null?'':`<svg width="22" height="22" viewBox="-10 -10 20 20"><circle r="9.3" fill="#10243a" stroke="#2f6aa3" stroke-width="1.2"/><polygon points="0,7 -5.5,-7 0,-3 5.5,-7" fill="#7fc4ff" transform="rotate(${dir+180})"/></svg>`;
-  const curMarks=items.map((o,k)=>{const c=daily?curDay(o):curNow(lm(o.t),o.i);if(!c)return '';
-    return `<div class="cur" style="left:${((k+.5)/n*100).toFixed(2)}%;top:${TT+CR/2+2}px">${curArrow(c.dir)}<span>${CW(c.v)}</span></div>`}).join('');
-  tideChart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${n*100} ${TT+CR}" preserveAspectRatio="none">${paths}</svg>${labels}${curMarks}</div>`;
+      const a=e[q],b=e[q+1],f=(ms-a.ms)/(b.ms-a.ms);return a.v+(b.v-a.v)*(1-Math.cos(Math.PI*f))/2}
+    const x=(ms-hOff)/3600000,i0=Math.floor(x),f=x-i0,va=mv('ocean_current_velocity',i0),vb=mv('ocean_current_velocity',i0+1);
+    const v=va==null?vb:(vb==null||f===0)?va:va+(vb-va)*f;return v==null?null:v*CUR.fac};
+  const curNow=(ms,i)=>{const sv=curSgn(ms);if(sv==null)return null;
+    if(CUR.src==='NOAA')return{v:Math.abs(sv),dir:sv>=0?CUR.fdir:CUR.edir,sgn:sv>=0?1:-1};
+    return{v:sv,dir:mv('ocean_current_direction',i),sgn:0}};
+  const tPts=[],cPts=[];
+  for(let ms=tStart;ms<=tEnd;ms+=sampMs){const tv=tideH(ms);if(tv!=null)tPts.push({ms,v:tv});const cv=curSgn(ms);if(cv!=null)cPts.push({ms,v:cv})}
+  let tmn=0,tsp=1;if(tPts.length>3){tmn=Math.min(...tPts.map(p=>p.v));tsp=Math.max(Math.max(...tPts.map(p=>p.v))-tmn,.3)}
+  const ty2=v=>20+(1-(v-tmn)/tsp)*(TB-40),cmax=Math.max(1,...cPts.map(p=>Math.abs(p.v))),cy=v=>ZY-(v/cmax)*13;
+  const lpc=ms=>(xOf(ms)/n*100).toFixed(2);
+  const fmtT=e=>fmtMin(strMin(e.t));
+  const curArrow=(dir,col)=>dir==null?'':`<svg width="20" height="20" viewBox="-10 -10 20 20"><circle r="9.3" fill="#10243a" stroke="${col}" stroke-width="1.3"/><polygon points="0,7 -5.5,-7 0,-3 5.5,-7" fill="${col}" transform="rotate(${dir+180})"/></svg>`;
+  let sv='',lab='',legend='';
+  // tide curve + area (blue runs down through the current band)
+  if(tPts.length>3){const xy=tPts.map(p=>[xOf(p.ms)*100,ty2(p.v)]),d=smoothD(xy);
+    sv+=`<defs><linearGradient id="tcg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5cb8ff" stop-opacity=".34"/><stop offset="1" stop-color="#5cb8ff" stop-opacity=".05"/></linearGradient></defs><path d="${d}L${xy[xy.length-1][0].toFixed(1)} ${TC}L${xy[0][0].toFixed(1)} ${TC}Z" fill="url(#tcg)"/><path d="${d}" fill="none" stroke="#5cb8ff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`}
+  sv+=`<line x1="0" y1="${ZY}" x2="${WD}" y2="${ZY}" stroke="rgba(255,255,255,.22)" stroke-width="1" stroke-dasharray="3 4" vector-effect="non-scaling-stroke"/>`;
+  // safe-passage windows: +-1 h around slack (NOAA predictions only)
+  const slacks=CUR&&CUR.src==='NOAA'?CUR.ev.filter(e=>e.v===0&&inR(e.ms)):[];
+  if(!daily)slacks.forEach(e=>{const x0=Math.max(0,xOf(e.ms-3600000)),x1=Math.min(n,xOf(e.ms+3600000));sv+=`<rect x="${(x0*100).toFixed(1)}" y="${TB}" width="${((x1-x0)*100).toFixed(1)}" height="${CB}" fill="rgba(123,213,111,.13)"/>`});
+  if(slacks.length&&!daily)legend='<small style="color:#7bd56f">slack ±1h</small>';
+  // wind against current (hourly views): amber tint + warning
+  if(!daily&&CUR){let any=false;items.forEach((o,k)=>{const cc=curNow(lm(o.t),o.i);if(!cc||cc.dir==null||cc.v<0.8||o.wg<14)return;
+    const df=Math.abs(((o.dir-cc.dir+540)%360)-180);if(df>50)return;any=true;
+    sv+=`<rect x="${k*100}" y="${TB}" width="100" height="${CB}" fill="rgba(255,179,71,.15)"/>`;lab+=`<span class="wvt" style="left:${((k+.5)/n*100).toFixed(2)}%;top:${TB+7}px">⚠</span>`});
+    if(any)legend='<small style="color:#ffb347">⚠ wind vs tide</small>'}
+  // current curve: flood above the zero line (teal), ebb below (amber)
+  if(cPts.length>3){const xy=cPts.map(p=>[xOf(p.ms)*100,cy(p.v)]),d=smoothD(xy);
+    if(CUR.src==='NOAA')sv+=`<defs><clipPath id="cfl"><rect x="0" y="0" width="${WD}" height="${ZY}"/></clipPath><clipPath id="ceb"><rect x="0" y="${ZY}" width="${WD}" height="${TC-ZY}"/></clipPath></defs><path d="${d}" fill="none" stroke="#4fd1c5" stroke-width="2.6" stroke-linejoin="round" clip-path="url(#cfl)" vector-effect="non-scaling-stroke"/><path d="${d}" fill="none" stroke="#ffb347" stroke-width="2.6" stroke-linejoin="round" clip-path="url(#ceb)" vector-effect="non-scaling-stroke"/>`;
+    else sv+=`<path d="${d}" fill="none" stroke="#4fd1c5" stroke-width="2.6" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>`}
+  // tide events
+  if(TD){
+    if(daily){
+      items.forEach((o,k)=>{const day=o.t.slice(0,10),ex=TD.ext.filter(e=>e.t.slice(0,10)===day),hi=ex.filter(e=>e.type==='H'),lo=ex.filter(e=>e.type==='L'),l=((k+.5)/n*100).toFixed(2);
+        const f=e=>`${TU(e.v)} ${fmtT(e)}`;
+        if(hi.length)lab+=`<span class="dtl" style="left:${l}%;top:1px;color:#bfe3ff">▲${hi.map(f).join(' ')}</span>`;
+        if(lo.length)lab+=`<span class="dtl" style="left:${l}%;top:${TB-14}px;color:#ffd6a0">▼${lo.map(f).join(' ')}</span>`});
+      TD.ext.filter(e=>inR(e.ms)).forEach(e=>{lab+=`<span class="dot" style="left:${lpc(e.ms)}%;top:${ty2(e.v)}px;border-color:${e.type==='H'?'#5cb8ff':'#ffb347'}"></span>`})
+    }else TD.ext.filter(e=>inR(e.ms)).forEach(e=>{const l=lpc(e.ms),y=ty2(e.v),hi=e.type==='H',tx=l<6?'-8%':l>94?'-92%':'-50%';
+      lab+=`<span class="dot" style="left:${l}%;top:${y}px;border-color:${hi?'#5cb8ff':'#ffb347'}"></span><span class="tl2" style="left:${l}%;top:${hi?y-6:y+6}px;transform:translate(${tx},${hi?'-100%':'0'});color:${hi?'#bfe3ff':'#ffd6a0'}">${hi?'▲':'▼'}${TU(e.v)} ${fmtT(e)}</span>`})
+  }else lab+=`<span class="tt" style="position:absolute;left:50%;top:${TB/2}px;transform:translate(-50%,-50%);color:var(--mut)">–</span>`;
+  // current events: arrow + speed at each max flood / max ebb, slack chips
+  if(CUR){
+    const mk=(ms,v,dir,col)=>{const x=xOf(ms),l=(x/n*100).toFixed(2),rev=x/n>.9;
+      return `<div class="cm${rev?' rev':''}" style="left:${l}%;top:${cy(v)}px">${curArrow(dir,col)}<span style="color:${col}">${CW(Math.abs(v))}</span></div>`};
+    let evs=[];
+    if(CUR.src==='NOAA')evs=CUR.ev.filter(e=>e.v!==0&&inR(e.ms)).map(e=>({ms:e.ms,t:e.t,v:e.v,dir:e.v>0?CUR.fdir:CUR.edir,col:e.v>0?'#4fd1c5':'#ffb347'}));
+    else for(let j=1;j<h.time.length-1;j++){const ms=lm(h.time[j]);if(!inR(ms))continue;const a=mv('ocean_current_velocity',j-1),b=mv('ocean_current_velocity',j),c2=mv('ocean_current_velocity',j+1);
+      if(a==null||b==null||c2==null)continue;if(b>a&&b>=c2&&b*CUR.fac>=0.3)evs.push({ms,t:h.time[j],v:b*CUR.fac,dir:mv('ocean_current_direction',j),col:'#7fc4ff'})}
+    if(daily){const byDay={};evs.forEach(e=>{const d=e.t.slice(0,10);(byDay[d]=byDay[d]||[]).push(e)});
+      evs=[];Object.values(byDay).forEach(arr=>{const fl=arr.filter(e=>e.v>0).sort((a,b)=>b.v-a.v)[0],eb=arr.filter(e=>e.v<0).sort((a,b)=>a.v-b.v)[0];if(CUR.src==='NOAA'){if(fl)evs.push(fl);if(eb)evs.push(eb)}else evs.push(arr.sort((a,b)=>b.v-a.v)[0])})}
+    lab+=evs.map(e=>mk(e.ms,e.v,e.dir,e.col)).join('');
+    if(!daily)slacks.forEach(e=>{lab+=`<span class="sl" style="left:${lpc(e.ms)}%;top:${ZY}px">slack ${fmtT(e)}</span>`});
+  }else lab+=`<span class="tt" style="position:absolute;left:50%;top:${ZY}px;transform:translate(-50%,-50%);color:var(--mut)">–</span>`;
+  // now marker
+  let nowTide='',nowCur='';
+  if(!daily&&inR(nowT)){const lx=lpc(nowT);
+    sv+=`<line x1="${(xOf(nowT)*100).toFixed(1)}" y1="0" x2="${(xOf(nowT)*100).toFixed(1)}" y2="${TC}" stroke="rgba(255,255,255,.45)" stroke-width="1" stroke-dasharray="2 3" vector-effect="non-scaling-stroke"/>`;
+    const tn=TD?tideH(nowT):null,cn=CUR?curNow(nowT,ci):null;
+    if(tn!=null){lab+=`<span class="dot now" style="left:${lx}%;top:${ty2(tn)}px"></span>`;nowTide=`<small>now ${TU(tn)} ${WVU}</small>`}
+    if(cn){lab+=`<span class="dot now" style="left:${lx}%;top:${cy(CUR.src==='NOAA'?(cn.sgn>=0?cn.v:-cn.v):cn.v)}px"></span>`;nowCur=`<small>now ${CW(cn.v)} kn</small>`}}
+  const tcChart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${WD} ${TC}" preserveAspectRatio="none">${sv}</svg>${lab}</div>`;
+  const tcLabel=`<b class="dual"><span style="top:${TB/2}px">Tides${nowTide}</span><span style="top:${ZY+2}px">Current${nowCur}${legend}</span></b>`;
 
   // wind: speed line (coloured by strength) with a dashed gust line above it
-  const WHt=126,wmax=Math.max(10,...items.map(o=>o.wg))*1.05,wy=v=>32+(1-Math.min(v,wmax)/wmax)*(WHt-72);
+  const WHt=122,wmax=Math.max(10,...items.map(o=>o.wg))*1.05,wy=v=>32+(1-Math.min(v,wmax)/wmax)*(WHt-72);
   const spPts=items.map((o,k)=>({x:k+.5,v:o.ws})),gsPts=items.map((o,k)=>({x:k+.5,v:o.wg}));
   let spL=spPts,gsL=gsPts;
   {const i0=items[0].i,i1=items[n-1].i;
@@ -690,7 +730,7 @@ function render(){
   const mvf=(key,x)=>{const i0=Math.floor(x),f=x-i0,a=mv(key,i0),b=mv(key,i0+1);return a==null?b:(b==null||f===0)?a:a+(b-a)*f};
   const KA=[[0,0],[.1,.9],[.5,2],[1.25,3.6],[2.5,5.6],[4,8],[6,10.5],[9,12.5]],KL=[[0,30],[.1,28],[.5,26],[1.25,24],[2.5,22],[4,20],[6,18],[9,17]];
   const kint=(K,v)=>{if(v<=K[0][0])return K[0][1];for(let i=1;i<K.length;i++){if(v<=K[i][0]){const f=(v-K[i-1][0])/(K[i][0]-K[i-1][0]);return K[i-1][1]+(K[i][1]-K[i-1][1])*f}}return K[K.length-1][1]};
-  const TW=70,W0=882,AMAX=8,wPts=items.map((o,k)=>({x:k+.5,v:o.wave,o})).filter(q=>q.v!=null);
+  const TW=62,W0=882,AMAX=8,wPts=items.map((o,k)=>({x:k+.5,v:o.wave,o})).filter(q=>q.v!=null);
   let waveChart;
   if(wPts.length<2)waveChart=`<div class="chart" style="grid-column:2 / span ${n}"><span class="tt" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--mut)">–</span></div>`;
   else{
@@ -736,7 +776,7 @@ function render(){
    row('tp','Temp',chart)+
    row('tp wl','Wind',windChart)+
    row('tp wvl','Waves',waveChart)+
-   `<div class="row tp td2 tcur"><b class="dual"><span style="top:${TT/2}px">Tides</span><span style="top:${TT+CR/2+2}px">Current</span></b>${tideChart}</div>`;
+   `<div class="row tp tcur">${tcLabel}${tcChart}</div>`;
   $('stepb').onclick=()=>{P.step=P.step===1?3:P.step===3?6:P.step===6?0:1;savePrefs();render()};
 }
 function clock(){
@@ -823,6 +863,7 @@ function modelCurrent(){
 async function loadCurrent(){
   const ck=CURK;let c=null;
   if(!qs.has('demo')){try{c=await noaaCurrent(LOC,D)}catch(e){}}
+  if(qs.has('demo')&&qs.has('noaa')&&D){const ev=[];let t=lm(D.hourly.time[0]);const ty=[0,1,0,-1];for(let q=0;q<90;q++){ev.push({t:new Date(t).toISOString().slice(0,16),ms:t,v:ty[q%4]*(1.2+.5*Math.sin(q/3))});t+=3.1*3600000}c={src:'NOAA',name:'demo',d:0,ev,fdir:20,edir:200}}
   if(!c&&D)c=modelCurrent();
   if(ck!==CURK)return;
   CUR=c;render();
