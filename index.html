@@ -249,8 +249,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .row.wvl{height:78px}
 .ws small{font-size:13.5px;font-weight:500;color:var(--mut);margin-left:3px}
 .hd{height:30px}.ic{height:32px}.row.vis{height:32px}.tp{height:66px}.row.wl{height:126px}.row.wvl{height:70px}.row.tcur{height:82px}
+.trow{display:flex;align-items:baseline}.trow .tv{min-width:46px;text-align:right}.trow .tt{margin:0 0 0 auto;font-style:normal;color:#a9bbd0;font-size:15px;text-align:right}
+.lu{text-transform:none;letter-spacing:0;font-weight:600;opacity:.85}
 .row>b.dual{position:relative;align-self:stretch}
-.row>b.dual span{position:absolute;left:0;transform:translateY(-50%);white-space:nowrap}
+.row>b.dual>span{position:absolute;left:0;transform:translateY(-50%);white-space:nowrap}
 .cur{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;gap:4px;white-space:nowrap}
 .cur span{font-size:17px;font-weight:700;color:#bfe3ff}
 .tp{height:62px}.row.wl{height:122px}.row.wvl{height:62px}.row.tcur{height:98px}
@@ -594,6 +596,7 @@ function render(){
     if(CUR.src==='NOAA')return{v:Math.abs(sv),dir:sv>=0?CUR.fdir:CUR.edir,sgn:sv>=0?1:-1};
     return{v:sv,dir:mv('ocean_current_direction',i),sgn:0}};
   const curArrow=(dir,col,sz=20)=>dir==null?'':`<svg width="${sz}" height="${sz}" viewBox="-10 -10 20 20"><circle r="9.3" fill="#10243a" stroke="${col}" stroke-width="1.3"/><polygon points="0,7 -5.5,-7 0,-3 5.5,-7" fill="${col}" transform="rotate(${dir+180})"/></svg>`;
+  const LU=u=>`<span class="lu">(${u})</span>`;
   const WV=m=>(P.wv==='ft'?m*3.28084:m).toFixed(1),WVU=P.wv;
   const wh=mv('wave_height',ci),wp=mv('wave_period',ci),wd=mv('wave_direction',ci),st=mv('sea_surface_temperature',ci);
   const lat=LOC.lat,lon=LOC.lon,off=D.utc_offset_seconds??(-new Date().getTimezoneOffset()*60),ds=c.time.slice(0,10);
@@ -609,8 +612,8 @@ function render(){
   const curBadge=cnow?`<div class="tcb">${curArrow(cnow.dir,cnow.sgn>0?'#4fd1c5':cnow.sgn<0?'#ffb347':'#7fc4ff',24)}</div>`:'';
   let tideTile;
   if(TD){const nx=TD.ext.filter(e=>e.ms>nowMs).slice(0,2),rising=nx[0]&&nx[0].type==='H',tstate=TD.ext.some(e=>Math.abs(e.ms-nowMs)<=2400000)?'slack':rising?'rising':'falling';
-    const row=e=>`<div><em style="color:${e.type==='H'?'#5cb8ff':'#ffb347'};font-size:13px;margin-right:2px">${e.type==='H'?'▲':'▼'}</em>${TU(e.v)}<em style="margin:0 0 0 8px;color:#a9bbd0;font-size:15px">${fmtMin(strMin(e.t))}</em></div>`;
-    tideTile=`<div class="tile"><div class="lab"><button class="ttl" id="ttides">Tides <span class="u">(${WVU})</span></button></div><div class="gfx al" style="top:14px;right:12px;width:66px"><div class="tcol">${curBadge}${tideSvg(nowMs)}</div></div><div class="sm" style="margin-bottom:2px">${nx.map(row).join('')}</div></div>`}
+    const row=e=>`<div class="trow"><em style="color:${e.type==='H'?'#5cb8ff':'#ffb347'};font-size:13px;margin-right:2px">${e.type==='H'?'▲':'▼'}</em><span class="tv">${TU(e.v)}</span><em class="tt">${fmtMin(strMin(e.t))}</em></div>`;
+    tideTile=`<div class="tile" id="ttile"><div class="lab"><button class="ttl" id="ttides">Tides <span class="u">(${WVU})</span></button></div><div class="gfx al" style="top:14px;right:12px;width:66px"><div class="tcol">${curBadge}${tideSvg(nowMs)}</div></div><div class="sm" style="margin-bottom:2px">${nx.map(row).join('')}</div></div>`}
   else tideTile=`<div class="tile"><div class="lab">Tides</div><div class="gfx">${waveSvg(null)}</div><div class="val" style="font-size:30px">–</div><div class="tsub">${TDL?'Loading…':'No tide data here'}</div></div>`;
   const vk=c.visibility==null?null:c.visibility/1000,spread=c.temperature_2m-c.dew_point_2m;
   const fogNow=isFog(c.weather_code,vk),fogRisk=!fogNow&&spread<=1.5&&c.wind_speed_10m<=8&&(vk==null||vk>=1);
@@ -716,11 +719,11 @@ function render(){
       lab+=evs.map(e=>{const x=xOf(e.ms),rev=x/n>.9;
       return `<div class="cm${rev?' rev':''}" style="left:${(x/n*100).toFixed(2)}%;top:${lanes[e.ln]}px">${curArrow(e.dir,cols[e.ln])}<span style="color:${cols[e.ln]}">${CW(Math.abs(e.v))}</span></div>`}).join('');
       if(inR(nowT)){const cn=curNow(nowT,ci);if(cn){const xn=xOf(nowT);
-        if(!evs.some(e=>Math.abs(xOf(e.ms)-xn)*(882/n)<52)){const cc=cn.sgn>0?'#4fd1c5':cn.sgn<0?'#ffb347':'#7fc4ff';lab+=`<div class="cnl" style="left:${(xn/n*100).toFixed(2)}%;top:${TB+24}px;color:${cc}">${curArrow(cn.dir,cc,20)}<span>${CW(cn.v)} ${P.w}</span></div>`}}}
+        if(!evs.some(e=>Math.abs(xOf(e.ms)-xn)*(882/n)<52)){const cc=cn.sgn>0?'#4fd1c5':cn.sgn<0?'#ffb347':'#7fc4ff';lab+=`<div class="cnl" style="left:${(xn/n*100).toFixed(2)}%;top:${TB+24}px;color:${cc}">${curArrow(cn.dir,cc,20)}</div>`}}}
     }
   }else lab+=`<span class="tt" style="position:absolute;left:50%;top:${TB+CB/2}px;transform:translate(-50%,-50%);color:var(--mut)">–</span>`;
   const tcChart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${WD} ${TC}" preserveAspectRatio="none">${sv}</svg>${lab}</div>`;
-  const tcLabel=`<b class="dual"><span style="top:${TB/2}px">Tides</span><span style="top:${TB+CB/2}px">Current</span></b>`;
+  const tcLabel=`<b class="dual"><span style="top:${TB/2}px">Tides ${LU(P.wv)}</span><span style="top:${TB+CB/2}px">Curr ${LU(P.w)}</span></b>`;
 
   // wind: speed line (coloured by strength) with a dashed gust line above it
   const WHt=122,wmax=Math.max(10,...items.map(o=>o.wg))*1.05,wy=v=>32+(1-Math.min(v,wmax)/wmax)*(WHt-72);
@@ -784,11 +787,11 @@ function render(){
       if(daily)return `<em>${o.k===0?'Today':MON[+t.slice(5,7)-1]+' '+(+t.slice(8,10))}</em><span>${dow(t)}</span>`;
       const hr=+t.slice(11,13);const lab=o.k===0?'Now':(hr===0||(P.step>1&&o.k>0&&hr<P.step))?dow(t):'';
       return `<em>${lab}</em><span>${hLab(hr)}</span>`}))+
-   row('ic','Rain',cells(o=>icon(o.code,o.day)+`<small class="rp" style="color:${o.pp>=50?'#5cb8ff':o.pp>=20?'#cfe6fa':'#8fa0b6'}">${Math.round(o.pp)}%</small>`))+
-   row('vis','Visibility',cells(visCell))+
-   row('tp','Temp',chart)+
-   row('tp wl','Wind',windChart)+
-   row('tp wvl','Waves',waveChart)+
+   row('ic','Rain '+LU('%'),cells(o=>icon(o.code,o.day)+`<small class="rp" style="color:${o.pp>=50?'#5cb8ff':o.pp>=20?'#cfe6fa':'#8fa0b6'}">${Math.round(o.pp)}%</small>`))+
+   row('vis','Visi '+LU(P.vu),cells(visCell))+
+   row('tp','Temp '+LU(P.t==='F'?'°F':'°C'),chart)+
+   row('tp wl','Wind '+LU(P.w),windChart)+
+   row('tp wvl','Waves '+LU(P.wv),waveChart)+
    `<div class="row tp tcur">${tcLabel}${tcChart}</div>`;
   $('stepb').onclick=()=>{P.step=P.step===1?3:P.step===3?6:P.step===6?0:1;savePrefs();render()};
 }
@@ -1041,10 +1044,10 @@ setInterval(clock,20000);
 /* ---- Help: highlight clickable features ---- */
 (function(){
   const H=document.getElementById('help');
-  const items=[['#place','Place name – choose a location on the map'],['#hstar','Star – add / remove Favorite'],['#temp','Temperature – °C / °F'],['#twind','Wind – kts / km/h / mph / m/s'],['#tvis','Visibility – km / nm'],['#twave','Waves – m / ft'],['#ttides','Tides – m / ft'],['#stepb','View – Hourly / 3-Hours / 6-Hours / Daily'],['#rows .row.hd','Time header – 12h / 24h clock'],['.fav','Favorites – tap to switch, ★ removes'],['#fs','Full screen']];
+  const items=[['#place','Place name – choose a location on the map'],['#hstar','Star – add / remove Favorite'],['#temp','Temperature – °C / °F'],['#twind','Wind – kts / km/h / mph / m/s'],['#tvis','Visibility – km / nm'],['#twave','Waves – m / ft'],['#ttile','Tides – tap title for m / ft'],['#stepb','View – Hourly / 3-Hours / 6-Hours / Daily'],['@hrs','Time header – 12h / 24h clock'],['.fav','Favorites – tap to switch, ★ removes'],['#fs','Full screen']];
   function open(){
     let h='',l='',n=0;
-    items.forEach(([q,t])=>{const e=document.querySelector(q);if(!e)return;const r=e.getBoundingClientRect();if(!r.width||!r.height)return;n++;
+    items.forEach(([q,t])=>{let r;if(q==='@hrs'){const cs=[...document.querySelectorAll('#rows .row.hd>*:not(b)')];if(!cs.length)return;const rs=cs.map(c=>c.getBoundingClientRect());r={left:Math.min(...rs.map(x=>x.left)),top:Math.min(...rs.map(x=>x.top)),width:Math.max(...rs.map(x=>x.right))-Math.min(...rs.map(x=>x.left)),height:Math.max(...rs.map(x=>x.height))}}else{const e=document.querySelector(q);if(!e)return;r=e.getBoundingClientRect()}if(!r.width||!r.height)return;n++;
       h+=`<div class="hl" style="left:${r.left-3}px;top:${r.top-3}px;width:${r.width+6}px;height:${r.height+6}px"><i>${n}</i></div>`;
       l+=`<div><b>${n}</b>${t}</div>`});
     H.innerHTML=h+`<div class="hlg">${l}<button id="hok">Got it</button></div>`;
