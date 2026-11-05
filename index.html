@@ -269,6 +269,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .cp{position:absolute;transform:translate(-50%,-50%);display:flex;gap:10px;white-space:nowrap}
 .cp div{display:flex;align-items:center;gap:3px}
 .cp span{font-size:13px;font-weight:700;background:rgba(15,25,40,.6);padding:0 2px;border-radius:4px}
+.tcol{display:flex;flex-direction:column;align-items:center;gap:3px}
+.tcb{display:flex;align-items:center;gap:4px;white-space:nowrap}
+.tcb span{font-size:12.5px;font-weight:700;color:#bfe3ff}
+.tnl{position:absolute;font-size:12.5px;font-weight:700;color:#fff;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -513,7 +517,7 @@ function tideSvg(nowMs){
   const X=k=>(k+12)/48*84,Y=v=>30-(v-mn)/sp*26;
   let d='';pts.forEach((p,i)=>d+=(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)+' ');
   const lx=X(pts[pts.length-1][0]).toFixed(1),fx=X(pts[0][0]).toFixed(1),nv=tideH(nowMs);
-  return `<svg width="70" height="28" viewBox="0 0 84 34" preserveAspectRatio="none"><defs><linearGradient id="tdg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5cb8ff" stop-opacity=".45"/><stop offset="1" stop-color="#5cb8ff" stop-opacity="0"/></linearGradient></defs><path d="${d}L${lx} 34L${fx} 34Z" fill="url(#tdg)"/><path d="${d}" fill="none" stroke="#5cb8ff" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${nv!=null?`<circle cx="${X(0).toFixed(1)}" cy="${Y(nv).toFixed(1)}" r="4" fill="#fff" stroke="#5cb8ff" stroke-width="2"/>`:''}</svg>`}
+  return `<svg width="70" height="20" viewBox="0 0 84 34" preserveAspectRatio="none"><defs><linearGradient id="tdg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5cb8ff" stop-opacity=".45"/><stop offset="1" stop-color="#5cb8ff" stop-opacity="0"/></linearGradient></defs><path d="${d}L${lx} 34L${fx} 34Z" fill="url(#tdg)"/><path d="${d}" fill="none" stroke="#5cb8ff" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${nv!=null?`<circle cx="${X(0).toFixed(1)}" cy="${Y(nv).toFixed(1)}" r="4" fill="#fff" stroke="#5cb8ff" stroke-width="2"/>`:''}</svg>`}
 function waveSvg(hm,wdir){            // sea-state pictogram: flatter/rippled -> steep breaking waves with foam and spray
   if(hm==null)return '<svg width="56" height="34" viewBox="0 0 56 34"><line x1="2" y1="20" x2="54" y2="20" stroke="#566478" stroke-width="2" stroke-dasharray="3 5" stroke-linecap="round"/></svg>';
   const names=['Glassy','Rippled','Smooth','Slight','Moderate','Rough','Very rough','High'];
@@ -580,12 +584,12 @@ function render(){
   const rlbl=rk===1?'% in 1 hr':`% in ${rk} h`;
   const dlm=strMin(D.daily.sunset[di])-strMin(D.daily.sunrise[di]),dayLen=`${Math.floor(dlm/60)}h ${p2(dlm%60)}m of daylight`;
   const TU=v=>(P.wv==='ft'?v*3.28084:v).toFixed(1).replace('-0.0','0.0'),nowMs=lm(c.time);
-  const tnowHtml=(()=>{const tn=TD?tideH(nowMs):null,cn=CUR?curNow(nowMs,ci):null;if(tn==null&&!cn)return '';
-    return `<div class="tnow">${tn!=null?`<b>now ${TU(tn)} ${WVU}</b>`:''}${cn?`<div>${curArrow(cn.dir,'#7fc4ff',16)}<span>${CW(cn.v)} ${P.w}</span></div>`:''}</div>`})();
+  const cnow=CUR?curNow(nowMs,ci):null;
+  const curBadge=cnow?`<div class="tcb">${curArrow(cnow.dir,cnow.sgn>0?'#4fd1c5':cnow.sgn<0?'#ffb347':'#7fc4ff',24)}<span>${CW(cnow.v)} ${P.w}</span></div>`:'';
   let tideTile;
   if(TD){const nx=TD.ext.filter(e=>e.ms>nowMs).slice(0,2),rising=nx[0]&&nx[0].type==='H',tstate=TD.ext.some(e=>Math.abs(e.ms-nowMs)<=2400000)?'slack':rising?'rising':'falling';
-    const row=e=>`<div><em style="color:${e.type==='H'?'#5cb8ff':'#ffb347'};font-size:13px;margin-right:2px">${e.type==='H'?'▲':'▼'}</em>${fmtMin(strMin(e.t))}<em>${TU(e.v)} ${WVU}</em></div>`;
-    tideTile=`<div class="tile"><div class="lab">Tides <span class="u">(${tstate})</span></div>${tnowHtml}<div class="gfx al">${tideSvg(nowMs)}</div><div class="sm" style="margin-bottom:2px">${nx.map(row).join('')}</div></div>`}
+    const row=e=>`<div><em style="color:${e.type==='H'?'#5cb8ff':'#ffb347'};font-size:13px;margin-right:2px">${e.type==='H'?'▲':'▼'}</em>${fmtMin(strMin(e.t))}<em>${TU(e.v)}</em></div>`;
+    tideTile=`<div class="tile"><div class="lab">Tides <span class="u">(${WVU})</span></div><div class="gfx al" style="top:14px;right:12px;width:66px"><div class="tcol">${curBadge}${tideSvg(nowMs)}</div></div><div class="sm" style="margin-bottom:2px">${nx.map(row).join('')}</div></div>`}
   else tideTile=`<div class="tile"><div class="lab">Tides</div><div class="gfx">${waveSvg(null)}</div><div class="val" style="font-size:30px">–</div><div class="tsub">${TDL?'Loading…':'No tide data here'}</div></div>`;
   const vk=c.visibility==null?null:c.visibility/1000,spread=c.temperature_2m-c.dew_point_2m;
   const fogNow=isFog(c.weather_code,vk),fogRisk=!fogNow&&spread<=1.5&&c.wind_speed_10m<=8&&(vk==null||vk>=1);
@@ -671,7 +675,7 @@ function render(){
     if(daily){evl=[];items.forEach(o=>{const day=o.t.slice(0,10),ex=TD.ext.filter(e=>e.t.slice(0,10)===day),hi=ex.filter(e=>e.type==='H').sort((a,b)=>b.v-a.v)[0],lo=ex.filter(e=>e.type==='L').sort((a,b)=>a.v-b.v)[0];if(hi)evl.push(hi);if(lo)evl.push(lo)})}
     evl.forEach(e=>{const l=lpc(e.ms),y=ty2(e.v),hi=e.type==='H',tx=l<6?'-8%':l>94?'-92%':'-50%';
       lab+=`<span class="dot" style="left:${l}%;top:${y}px;border-color:${hi?'#5cb8ff':'#ffb347'}"></span><span class="tl2" style="left:${l}%;top:${hi?y-6:y+6}px;transform:translate(${tx},${hi?'-100%':'0'});color:${hi?'#bfe3ff':'#ffd6a0'}">${hi?'▲':'▼'}${TU(e.v)} ${fmtT(e)}</span>`});
-    if(!daily&&inR(nowT)){const tn=tideH(nowT);if(tn!=null)lab+=`<span class="dot now" style="left:${lpc(nowT)}%;top:${ty2(tn)}px"></span>`}
+    if(!daily&&inR(nowT)){const tn=tideH(nowT);if(tn!=null){const yN=ty2(tn),below=yN<27;lab+=`<span class="dot now" style="left:${lpc(nowT)}%;top:${yN}px"></span><span class="tnl" style="left:${lpc(nowT)}%;top:${below?yN+7:yN-7}px;transform:translate(-50%,${below?'0':'-100%'})">${TU(tn)}</span>`}}
   }else lab+=`<span class="tt" style="position:absolute;left:50%;top:${TB/2}px;transform:translate(-50%,-50%);color:var(--mut)">–</span>`;
   // current: arrow + speed at each max flood (upper lane) / max ebb (lower lane)
   if(CUR){
