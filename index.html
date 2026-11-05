@@ -407,6 +407,15 @@ function sky(c,day){const k=kind(c);
 /* ---------- location ---------- */
 const getJSON=async(u,t=9000)=>{const c=new AbortController();const id=setTimeout(()=>c.abort(),t);
   try{const r=await fetch(u,{signal:c.signal});if(!r.ok)throw new Error(r.status);return await r.json()}finally{clearTimeout(id)}};
+async function revName(lat,lon){
+  try{const j=await getJSON(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=14&addressdetails=1&accept-language=en&lat=${lat}&lon=${lon}`);
+    const a=j.address||{};const place=a.village||a.hamlet||a.suburb||a.neighbourhood||a.town||a.city||a.municipality||a.county;
+    const muni=(a.municipality||'').replace(/s?\s*Regionskommune$/i,'').replace(/\s+(Kommune|kommun)$/i,'');
+    const reg=a.island||(a.country_code==='dk'&&muni?muni:(a.state||a.region||(a.country_code==='us'?'':a.country)));
+    if(place)return [place,reg].filter(Boolean).join(', ')}catch(e){}
+  try{const j=await getJSON(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+    return [j.locality||j.city,j.principalSubdivision].filter(Boolean).join(', ')}catch(e){}
+  return ''}
 const geo=()=>new Promise((res,rej)=>{if(!navigator.geolocation)return rej(new Error('nogeo'));
   navigator.geolocation.getCurrentPosition(p=>res({lat:p.coords.latitude,lon:p.coords.longitude,acc:p.coords.accuracy}),rej,{enableHighAccuracy:true,timeout:15000,maximumAge:60000})});
 const saved=()=>{try{return JSON.parse(localStorage.getItem('wx-loc')||'null')}catch(e){return null}};
@@ -421,8 +430,7 @@ async function locate(){
   const old=saved();
   const moved=!old||Math.abs(old.lat-l.lat)>0.02||Math.abs(old.lon-l.lon)>0.02;
   if(old&&!moved)l.name=old.name;
-  if(!l.name){try{const j=await getJSON(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${l.lat}&longitude=${l.lon}&localityLanguage=en`);
-    l.name=[j.city||j.locality,j.principalSubdivision].filter(Boolean).join(', ')}catch(e){}}
+  if(!l.name)l.name=await revName(l.lat,l.lon);
   if(!l.name)l.name=`${l.lat.toFixed(2)}°, ${l.lon.toFixed(2)}°`;
   try{localStorage.setItem('wx-loc',JSON.stringify({lat:l.lat,lon:l.lon,name:l.name}))}catch(e){}
   return l;
@@ -953,8 +961,7 @@ function setPend(lat,lon,name,pan){
     if(!MK)MK=L.circleMarker([lat,lon],{radius:11,color:'#fff',weight:3,fillColor:'#5cb8ff',fillOpacity:1}).addTo(MAP);else MK.setLatLng([lat,lon]);
     if(pan)MAP.setView([lat,lon],Math.max(MAP.getZoom(),9));
   }
-  if(!name){getJSON(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`)
-    .then(j=>{if(PEND===me){me.name=[j.city||j.locality,j.principalSubdivision].filter(Boolean).join(', ');selLabel()}}).catch(()=>{})}
+  if(!name){revName(lat,lon).then(n=>{if(PEND===me&&n){me.name=n;selLabel()}})}
 }
 async function openMap(){
   $('mapov').classList.add('on');$('mapq').value='';$('mapres').innerHTML='';
