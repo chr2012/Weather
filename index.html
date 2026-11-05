@@ -273,9 +273,22 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .tcb{display:flex;align-items:center;gap:4px;white-space:nowrap}
 .tcb span{font-size:12.5px;font-weight:700;color:#bfe3ff}
 .tnl{position:absolute;font-size:12.5px;font-weight:700;color:#fff;white-space:nowrap}
+.cnl{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;gap:4px;font-size:13px;font-weight:700;white-space:nowrap}
+.cnl span{background:rgba(15,25,40,.6);padding:0 2px;border-radius:4px}
+
+.favh{display:flex;justify-content:space-between;align-items:center}
+.helpbtn{display:inline-flex;align-items:center;gap:4px;background:none;border:1px solid var(--line);color:#c9d6e6;border-radius:14px;padding:2px 9px 2px 6px;font:600 12px system-ui;cursor:pointer;text-transform:none;letter-spacing:0}
+.ttl{background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;text-transform:inherit;letter-spacing:inherit;cursor:pointer}
+#help{display:none;position:fixed;inset:0;z-index:9999;background:rgba(5,10,18,.72)}
+#help.on{display:block}
+.hl{position:fixed;border:2.5px solid #ffc43d;border-radius:12px;box-shadow:0 0 0 3px rgba(255,196,61,.25),0 0 14px rgba(255,196,61,.6);pointer-events:none}
+.hl i{position:absolute;top:-11px;left:-11px;width:22px;height:22px;border-radius:50%;background:#ffc43d;color:#111;font:700 13px/22px system-ui;text-align:center;font-style:normal}
+.hlg{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);max-width:94vw;background:#101a2a;border:1px solid #2b3b55;border-radius:14px;padding:10px 14px;color:#dbe6f3;font:13px/1.45 system-ui;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 26px}
+.hlg b{display:inline-block;min-width:20px;height:20px;border-radius:50%;background:#ffc43d;color:#111;text-align:center;font-size:12px;line-height:20px;margin-right:6px}
+.hlg button{grid-column:1/-1;justify-self:center;margin-top:6px;background:#ffc43d;color:#111;border:0;border-radius:14px;padding:5px 22px;font:700 13px system-ui;cursor:pointer}
 </style>
 </head>
-<body>
+<body><div id="help"></div>
 <div class="stage" id="stage">
   <div class="main">
   <div class="top">
@@ -306,7 +319,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
   </div>
   </div>
   <aside class="favs">
-    <div class="lab favh">Favorites</div>
+    <div class="lab favh"><span>Favorites</span><button class="helpbtn" id="helpbtn" aria-label="Help"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.2 9.2a2.9 2.9 0 1 1 4.3 2.5c-.9.5-1.5 1.1-1.5 2.1"/><circle cx="12" cy="17.6" r=".6" fill="currentColor"/></svg>Help</button></div>
     <div class="favlist" id="favlist"></div>
     <button class="fs" id="fs">⛶ Full screen</button>
     <div class="favcr">Map © OpenStreetMap contributors<br>Weather &amp; marine: Open-Meteo<br>Tides &amp; currents: NOAA</div>
@@ -346,7 +359,7 @@ let D=null,LOC=null;
 const N=12;
 
 /* ---------- fit 4:3 stage ---------- */
-function fit(){const s=Math.min(innerWidth/1280,innerHeight/768);$('stage').style.transform=`translate(-50%,-50%) scale(${s})`}
+function fit(){const s=Math.min(innerWidth/1280,innerHeight/768);$('stage').style.transform=`translate(-50%,-50%) scale(${s})`;document.documentElement.style.setProperty('--sc',s)}
 addEventListener('resize',fit);fit();
 
 /* ---------- helpers ---------- */
@@ -517,7 +530,7 @@ function tideSvg(nowMs){
   const X=k=>(k+12)/48*84,Y=v=>30-(v-mn)/sp*26;
   let d='';pts.forEach((p,i)=>d+=(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)+' ');
   const lx=X(pts[pts.length-1][0]).toFixed(1),fx=X(pts[0][0]).toFixed(1),nv=tideH(nowMs);
-  return `<svg width="70" height="20" viewBox="0 0 84 34" preserveAspectRatio="none"><defs><linearGradient id="tdg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5cb8ff" stop-opacity=".45"/><stop offset="1" stop-color="#5cb8ff" stop-opacity="0"/></linearGradient></defs><path d="${d}L${lx} 34L${fx} 34Z" fill="url(#tdg)"/><path d="${d}" fill="none" stroke="#5cb8ff" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${nv!=null?`<circle cx="${X(0).toFixed(1)}" cy="${Y(nv).toFixed(1)}" r="4" fill="#fff" stroke="#5cb8ff" stroke-width="2"/>`:''}</svg>`}
+  return `<svg width="66" height="20" viewBox="0 0 84 34" preserveAspectRatio="none"><defs><linearGradient id="tdg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5cb8ff" stop-opacity=".45"/><stop offset="1" stop-color="#5cb8ff" stop-opacity="0"/></linearGradient></defs><path d="${d}L${lx} 34L${fx} 34Z" fill="url(#tdg)"/><path d="${d}" fill="none" stroke="#5cb8ff" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>${nv!=null?`<circle cx="${X(0).toFixed(1)}" cy="${Y(nv).toFixed(1)}" r="4" fill="#fff" stroke="#5cb8ff" stroke-width="2"/>`:''}</svg>`}
 function waveSvg(hm,wdir){            // sea-state pictogram: flatter/rippled -> steep breaking waves with foam and spray
   if(hm==null)return '<svg width="56" height="34" viewBox="0 0 56 34"><line x1="2" y1="20" x2="54" y2="20" stroke="#566478" stroke-width="2" stroke-dasharray="3 5" stroke-linecap="round"/></svg>';
   const names=['Glassy','Rippled','Smooth','Slight','Moderate','Rough','Very rough','High'];
@@ -585,11 +598,11 @@ function render(){
   const dlm=strMin(D.daily.sunset[di])-strMin(D.daily.sunrise[di]),dayLen=`${Math.floor(dlm/60)}h ${p2(dlm%60)}m of daylight`;
   const TU=v=>(P.wv==='ft'?v*3.28084:v).toFixed(1).replace('-0.0','0.0'),nowMs=lm(c.time);
   const cnow=CUR?curNow(nowMs,ci):null;
-  const curBadge=cnow?`<div class="tcb">${curArrow(cnow.dir,cnow.sgn>0?'#4fd1c5':cnow.sgn<0?'#ffb347':'#7fc4ff',24)}<span>${CW(cnow.v)} ${P.w}</span></div>`:'';
+  const curBadge=cnow?`<div class="tcb">${curArrow(cnow.dir,cnow.sgn>0?'#4fd1c5':cnow.sgn<0?'#ffb347':'#7fc4ff',24)}</div>`:'';
   let tideTile;
   if(TD){const nx=TD.ext.filter(e=>e.ms>nowMs).slice(0,2),rising=nx[0]&&nx[0].type==='H',tstate=TD.ext.some(e=>Math.abs(e.ms-nowMs)<=2400000)?'slack':rising?'rising':'falling';
-    const row=e=>`<div><em style="color:${e.type==='H'?'#5cb8ff':'#ffb347'};font-size:13px;margin-right:2px">${e.type==='H'?'▲':'▼'}</em>${fmtMin(strMin(e.t))}<em>${TU(e.v)}</em></div>`;
-    tideTile=`<div class="tile"><div class="lab">Tides <span class="u">(${WVU})</span></div><div class="gfx al" style="top:14px;right:12px;width:66px"><div class="tcol">${curBadge}${tideSvg(nowMs)}</div></div><div class="sm" style="margin-bottom:2px">${nx.map(row).join('')}</div></div>`}
+    const row=e=>`<div><em style="color:${e.type==='H'?'#5cb8ff':'#ffb347'};font-size:13px;margin-right:2px">${e.type==='H'?'▲':'▼'}</em>${TU(e.v)}<em style="margin:0 0 0 8px;color:#a9bbd0;font-size:15px">${fmtMin(strMin(e.t))}</em></div>`;
+    tideTile=`<div class="tile"><div class="lab"><button class="ttl" id="ttides">Tides <span class="u">(${WVU})</span></button></div><div class="gfx al" style="top:14px;right:12px;width:66px"><div class="tcol">${curBadge}${tideSvg(nowMs)}</div></div><div class="sm" style="margin-bottom:2px">${nx.map(row).join('')}</div></div>`}
   else tideTile=`<div class="tile"><div class="lab">Tides</div><div class="gfx">${waveSvg(null)}</div><div class="val" style="font-size:30px">–</div><div class="tsub">${TDL?'Loading…':'No tide data here'}</div></div>`;
   const vk=c.visibility==null?null:c.visibility/1000,spread=c.temperature_2m-c.dew_point_2m;
   const fogNow=isFog(c.weather_code,vk),fogRisk=!fogNow&&spread<=1.5&&c.wind_speed_10m<=8&&(vk==null||vk>=1);
@@ -599,10 +612,11 @@ function render(){
    `<button class="tile" id="tvis"><div class="lab">Visibility <span class="u">(${P.vu})</span></div><div class="gfx al">${visScaleSvg(vk)}</div><div class="val" style="color:${vk==null?'inherit':visCol(vk)}">${visTxt(vk)}</div><div class="tsub">${fogNow?'<span class="fogtag">FOG</span>':fogRisk?'<span style="color:#f6a23d">Fog risk · Δ'+(P.t==='F'?(spread*1.8):spread).toFixed(1)+'°</span>':vk==null?'No data':'<span style="color:'+visCol(vk)+'">'+visWord(vk)+'</span>'}</div></button>`+
    `<button class="tile" id="twave"><div class="lab">Waves <span class="u">(${WVU})</span></div><div class="gfx al" style="top:14px;right:12px;width:66px">${waveSvg(wh,wd)}</div><div class="val">${wh==null?'–':WV(wh)}</div><div class="tsub">${wh==null?'No marine data here':Math.round(wp)+'s · '+card(wd)+(st!=null?' · sea '+T(st)+'°':'')}</div></button>`+
    tideTile+
-   `<div class="tile"><div class="lab">Sun &amp; Moon</div><div class="gfx al">${moonSvg(mi.phase,lat<0,32)}</div>
+   `<div class="tile"><div class="lab">Sun &amp; Moon</div><div class="gfx" style="top:5px;right:8px">${moonSvg(mi.phase,lat<0,52)}</div>
      <div class="sm" style="margin-bottom:2px"><div>${sunI}<em>↑</em>${fmtMin(strMin(D.daily.sunrise[di]))}<em>↓</em>${fmtMin(strMin(D.daily.sunset[di]))}</div><div>${moonI}<em>↑</em>${fmtMin(tm(mt.rise))}<em>↓</em>${fmtMin(tm(mt.set))}</div></div>
      </div>`;
   $('tvis').onclick=()=>{P.vu=P.vu==='km'?'nm':'km';savePrefs();render()};
+  if($('ttides'))$('ttides').onclick=()=>{P.wv=P.wv==='m'?'ft':'m';savePrefs();render()};
   $('twave').onclick=()=>{P.wv=P.wv==='m'?'ft':'m';savePrefs();render()};
   $('twind').onclick=()=>{P.w=WU[(WU.indexOf(P.w)+1)%WU.length];savePrefs();render()};
 
@@ -693,6 +707,8 @@ function render(){
     }else{
       lab+=evs.map(e=>{const x=xOf(e.ms),rev=x/n>.9;
       return `<div class="cm${rev?' rev':''}" style="left:${(x/n*100).toFixed(2)}%;top:${lanes[e.ln]}px">${curArrow(e.dir,cols[e.ln])}<span style="color:${cols[e.ln]}">${CW(Math.abs(e.v))}</span></div>`}).join('');
+      if(inR(nowT)){const cn=curNow(nowT,ci);if(cn){const xn=xOf(nowT);
+        if(!evs.some(e=>Math.abs(xOf(e.ms)-xn)*(882/n)<52)){const cc=cn.sgn>0?'#4fd1c5':cn.sgn<0?'#ffb347':'#7fc4ff';lab+=`<div class="cnl" style="left:${(xn/n*100).toFixed(2)}%;top:${TB+24}px;color:${cc}">${curArrow(cn.dir,cc,20)}<span>${CW(cn.v)} ${P.w}</span></div>`}}}
     }
   }else lab+=`<span class="tt" style="position:absolute;left:50%;top:${TB+CB/2}px;transform:translate(-50%,-50%);color:var(--mut)">–</span>`;
   const tcChart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${WD} ${TC}" preserveAspectRatio="none">${sv}</svg>${lab}</div>`;
@@ -1013,6 +1029,25 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){navigator.
 load(false);
 setInterval(()=>load(false),10*60*1000);
 setInterval(clock,20000);
+})();
+
+/* ---- Help: highlight clickable features ---- */
+(function(){
+  const H=document.getElementById('help');
+  const items=[['#place','Place name – choose a location on the map'],['#hstar','Star – add / remove Favorite'],['#temp','Temperature – °C / °F'],['#twind','Wind – kts / km/h / mph / m/s'],['#tvis','Visibility – km / nm'],['#twave','Waves – m / ft'],['#ttides','Tides – m / ft'],['#stepb','View – Hourly / 3-Hours / 6-Hours / Daily'],['#rows .row.hd','Time header – 12h / 24h clock'],['.fav','Favorites – tap to switch, ★ removes'],['#fs','Full screen']];
+  function open(){
+    let h='',l='',n=0;
+    items.forEach(([q,t])=>{const e=document.querySelector(q);if(!e)return;const r=e.getBoundingClientRect();if(!r.width||!r.height)return;n++;
+      h+=`<div class="hl" style="left:${r.left-3}px;top:${r.top-3}px;width:${r.width+6}px;height:${r.height+6}px"><i>${n}</i></div>`;
+      l+=`<div><b>${n}</b>${t}</div>`});
+    H.innerHTML=h+`<div class="hlg">${l}<button id="hok">Got it</button></div>`;
+    H.classList.add('on');
+  }
+  function close(){H.classList.remove('on');H.innerHTML=''}
+  document.getElementById('helpbtn').onclick=e=>{e.stopPropagation();open()};
+  H.addEventListener('click',close);
+  addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+  addEventListener('resize',()=>{if(H.classList.contains('on'))open()});
 })();
 </script>
 </body>
