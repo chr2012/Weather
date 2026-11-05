@@ -249,7 +249,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .row.wvl{height:78px}
 .ws small{font-size:13.5px;font-weight:500;color:var(--mut);margin-left:3px}
 .hd{height:30px}.ic{height:32px}.row.vis{height:32px}.tp{height:66px}.row.wl{height:126px}.row.wvl{height:70px}.row.tcur{height:82px}
-.trow{display:flex;align-items:baseline}.trow .tv{min-width:46px;text-align:right}.trow .tt{margin:0 0 0 auto;font-style:normal;color:#a9bbd0;font-size:15px;text-align:right}
+.trow{display:flex;align-items:baseline}.trow .tv{min-width:46px;text-align:right}.trow .tt{margin:0 0 0 auto;font-style:normal;color:inherit;font-size:17px;font-weight:600;text-align:right}
 .lu{text-transform:none;letter-spacing:0;font-weight:600;opacity:.85}
 .row>b.dual{position:relative;align-self:stretch}
 .row>b.dual>span{position:absolute;left:0;transform:translateY(-50%);white-space:nowrap}
@@ -719,11 +719,11 @@ function render(){
       lab+=evs.map(e=>{const x=xOf(e.ms),rev=x/n>.9;
       return `<div class="cm${rev?' rev':''}" style="left:${(x/n*100).toFixed(2)}%;top:${lanes[e.ln]}px">${curArrow(e.dir,cols[e.ln])}<span style="color:${cols[e.ln]}">${CW(Math.abs(e.v))}</span></div>`}).join('');
       if(inR(nowT)){const cn=curNow(nowT,ci);if(cn){const xn=xOf(nowT);
-        if(!evs.some(e=>Math.abs(xOf(e.ms)-xn)*(882/n)<52)){const cc=cn.sgn>0?'#4fd1c5':cn.sgn<0?'#ffb347':'#7fc4ff';lab+=`<div class="cnl" style="left:${(xn/n*100).toFixed(2)}%;top:${TB+24}px;color:${cc}">${curArrow(cn.dir,cc,20)}</div>`}}}
+        if(!evs.some(e=>Math.abs(xOf(e.ms)-xn)*(882/n)<52)){const cc=cn.sgn>0?'#4fd1c5':cn.sgn<0?'#ffb347':'#7fc4ff';lab+=`<div class="cnl" style="left:${(xn/n*100).toFixed(2)}%;top:${TB+24}px;color:${cc}">${curArrow(cn.dir,cc,20)}<span>${CW(cn.v)}</span></div>`}}}
     }
   }else lab+=`<span class="tt" style="position:absolute;left:50%;top:${TB+CB/2}px;transform:translate(-50%,-50%);color:var(--mut)">–</span>`;
   const tcChart=`<div class="chart" style="grid-column:2 / span ${n}"><svg class="line" viewBox="0 0 ${WD} ${TC}" preserveAspectRatio="none">${sv}</svg>${lab}</div>`;
-  const tcLabel=`<b class="dual"><span style="top:${TB/2}px">Tides ${LU(P.wv)}</span><span style="top:${TB+CB/2}px">Curr ${LU(P.w)}</span></b>`;
+  const tcLabel=`<b class="dual"><span style="top:${TB/2}px">Tide ${LU(P.wv)}</span><span style="top:${TB+CB/2}px">Curr ${LU(P.w)}</span></b>`;
 
   // wind: speed line (coloured by strength) with a dashed gust line above it
   const WHt=122,wmax=Math.max(10,...items.map(o=>o.wg))*1.05,wy=v=>32+(1-Math.min(v,wmax)/wmax)*(WHt-72);
@@ -789,9 +789,9 @@ function render(){
       return `<em>${lab}</em><span>${hLab(hr)}</span>`}))+
    row('ic','Rain '+LU('%'),cells(o=>icon(o.code,o.day)+`<small class="rp" style="color:${o.pp>=50?'#5cb8ff':o.pp>=20?'#cfe6fa':'#8fa0b6'}">${Math.round(o.pp)}%</small>`))+
    row('vis','Visi '+LU(P.vu),cells(visCell))+
-   row('tp','Temp '+LU(P.t==='F'?'°F':'°C'),chart)+
+   row('tp','Temp '+LU(P.t),chart)+
    row('tp wl','Wind '+LU(P.w),windChart)+
-   row('tp wvl','Waves '+LU(P.wv),waveChart)+
+   row('tp wvl','Wave '+LU(P.wv),waveChart)+
    `<div class="row tp tcur">${tcLabel}${tcChart}</div>`;
   $('stepb').onclick=()=>{P.step=P.step===1?3:P.step===3?6:P.step===6?0:1;savePrefs();render()};
 }
